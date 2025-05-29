@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 function HeroSection(params) {
     const typedText = "Hello, I'm Soumya 😎.";
@@ -63,12 +64,19 @@ function HeroSection(params) {
                 whileHover={{ scale: 1.01 }}
                 className="mt-8"
             >
-                <a
-                    href="/projects"
+                {/* Use Link for client-side navigation if using react-router-dom */}
+                {/* If using Next.js, import Link from 'next/link' instead */}
+                {/* 
+                    If you are using react-router-dom, use the Link component for navigation.
+                    This prevents full page reloads and 404s on client-side routes.
+                */}
+                {/* If not using react-router-dom, use a regular anchor tag */}
+                <Link
+                    to="/projects"
                     className="px-6 py-3 bg-blue-700 text-white rounded-xl font-medium shadow-md hover:bg-blue-800 hover:shadow-2xl transition"
                 >
                     View My Work
-                </a>
+                </Link>
             </motion.div>
         </div>
     );
