@@ -4,19 +4,19 @@ const projectList = [
   {
     id: 'portfolio',
     title: 'React Portfolio',
-    image: 'src/assets/brand.png',
+    image: 'images/projects/brand.png',
     description: 'My personal portfolio built with React and Tailwind CSS.',
   },
   {
     id: 'automation using plywright',
     title: 'Automation Framework Using Playwright',
-    image: 'src/images/projects/pw_cucumber_java.png',
+    image: 'images/projects/pw_cucumber_java.png',
     description: 'A comprehensive BDD framework using Playwright and Cucumber with Java.',
   },
   {
     id: 'Andvance Reporting with grafana & mongodb',
     title: 'Andvance Reporting using grafana & mongodb',
-    image: 'src/images/projects/grafana_mongo.png',
+    image: 'images/projects/grafana_mongo.png',
     description: 'Create advanced reports using Grafana and MongoDB for data visualization.',
   }
 ];

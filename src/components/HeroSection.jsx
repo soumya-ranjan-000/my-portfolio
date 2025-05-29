@@ -59,13 +59,17 @@ function HeroSection(params) {
             >
                 A passionate SDET & Automation Engineer crafting modern test frameworks and projects.
             </motion.p>
-            <motion.a
-                href="/projects"
-                className="mt-8 px-6 py-3 bg-blue-700 text-white rounded-xl font-medium shadow-md hover:bg-blue-800 hover:shadow-2xl transition"
+            <motion.div
                 whileHover={{ scale: 1.01 }}
+                className="mt-8"
             >
-                View My Work
-            </motion.a>
+                <a
+                    href="/projects"
+                    className="px-6 py-3 bg-blue-700 text-white rounded-xl font-medium shadow-md hover:bg-blue-800 hover:shadow-2xl transition"
+                >
+                    View My Work
+                </a>
+            </motion.div>
         </div>
     );
 }
