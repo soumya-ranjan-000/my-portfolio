@@ -8,7 +8,7 @@ function Home() {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center text-center justify-center bg-blue-50 px-4 transition-colors duration-300">
+      <div className="min-h-screen flex flex-col items-center text-center justify-center  px-4 bg-blue-50 transition-colors duration-300">
         <HeroSection />
         {/* Add spacing between HeroSection and AwardBadges */}
         <div className="my-8" />

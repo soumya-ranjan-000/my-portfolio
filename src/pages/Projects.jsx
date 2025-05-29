@@ -1,29 +1,9 @@
 import ProjectCard from '../components/ProjectCard';
-
-const projectList = [
-  {
-    id: 'portfolio',
-    title: 'React Portfolio',
-    image: 'images/projects/brand.png',
-    description: 'My personal portfolio built with React and Tailwind CSS.',
-  },
-  {
-    id: 'automation using plywright',
-    title: 'Automation Framework Using Playwright',
-    image: 'images/projects/pw_cucumber_java.png',
-    description: 'A comprehensive BDD framework using Playwright and Cucumber with Java.',
-  },
-  {
-    id: 'Andvance Reporting with grafana & mongodb',
-    title: 'Andvance Reporting using grafana & mongodb',
-    image: 'images/projects/grafana_mongo.png',
-    description: 'Create advanced reports using Grafana and MongoDB for data visualization.',
-  }
-];
+import { projectsList } from "../data/projects";
 
 function Projects() {
 return (
-    <div className="max-w-6xl mx-auto px-4 py-10 mt-20 font-['Roboto']">
+    <div className="min-h-screen flex flex-col items-center text-center justify-center  px-4 bg-blue-50 transition-colors duration-300">
         <h2
             className="text-4xl font-extrabold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 drop-shadow-lg tracking-tight"
             style={{ fontFamily: "'Pacifico', cursive" }}
@@ -36,7 +16,7 @@ return (
             My Projects
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projectList.map((project) => (
+            {projectsList.map((project) => (
                 <ProjectCard key={project.id} {...project} />
             ))}
         </div>
