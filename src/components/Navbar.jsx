@@ -5,8 +5,8 @@ function Navbar() {
 const [isOpen, setIsOpen] = useState(false);
 
 return (
-    <nav className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 shadow-lg fixed top-0 w-full z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <nav className="bg-gray-900 shadow-lg fixed py-1 top-0 w-full z-50">
+        <div className="max-w-7xl mx-auto px-4 py-1 flex justify-between items-center">
             <Link to="/" className="flex items-center space-x-2 group">
                 {/* Modern SRG Logo */}
                 <svg
@@ -64,7 +64,7 @@ return (
                 </svg>
                 <span className="text-white font-extrabold text-xl tracking-widest drop-shadow-lg hidden sm:inline">SRG</span>
             </Link>
-            {/* Hamburger menu button */}
+            
             <button
                 className="md:hidden flex items-center px-2 py-1 border rounded text-white border-white bg-white/10 hover:bg-white/20 transition"
                 onClick={() => setIsOpen(!isOpen)}
@@ -78,18 +78,17 @@ return (
                     )}
                 </svg>
             </button>
-            {/* Desktop menu */}
-            <ul className="hidden md:flex space-x-6 text-white font-semibold text-lg drop-shadow">
+
+            <ul className="hidden md:flex space-x-6 text-gray-200 text-l font-['Raleway',sans-serif] font-light">
                 <li><Link className="hover:text-indigo-200 transition" to="/">Home</Link></li>
                 <li><Link className="hover:text-indigo-200 transition" to="/projects">Projects</Link></li>
                 <li><Link className="hover:text-indigo-200 transition" to="/articles">Articles</Link></li>
                 <li><Link className="hover:text-indigo-200 transition" to="/about">About</Link></li>
                 <li><Link className="hover:text-indigo-200 transition" to="/contact">Contact</Link></li>
             </ul>
-        </div>
-        {/* Mobile menu */}
+            </div>
         {isOpen && (
-            <ul className="md:hidden bg-gradient-to-b from-blue-700 via-indigo-700 to-purple-700 px-4 pb-3 pt-2 space-y-2 text-white font-semibold shadow-lg text-lg">
+            <ul className="md:hidden px-4 pb-3 pt-2 space-y-2 text-white text-m font-['Raleway',sans-serif] font-light">
                 <li><Link to="/" onClick={() => setIsOpen(false)} className="block hover:text-indigo-200 transition">Home</Link></li>
                 <li><Link to="/projects" onClick={() => setIsOpen(false)} className="block hover:text-indigo-200 transition">Projects</Link></li>
                 <li><Link to="/articles" onClick={() => setIsOpen(false)} className="block hover:text-indigo-200 transition">Articles</Link></li>

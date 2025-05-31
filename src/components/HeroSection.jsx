@@ -33,7 +33,7 @@ function HeroSection(params) {
         }, []);
 
         return (
-            <h1 className="text-6xl font-bold text-blue-800 flex items-center justify-center min-h-[60px]">
+            <h1 className="text-6xl font-bold text-gray-800 flex items-center justify-center min-h-[60px]">
                 <span>
                     {displayed}
                     <span
@@ -64,16 +64,10 @@ function HeroSection(params) {
                 whileHover={{ scale: 1.01 }}
                 className="mt-8"
             >
-                {/* Use Link for client-side navigation if using react-router-dom */}
-                {/* If using Next.js, import Link from 'next/link' instead */}
-                {/* 
-                    If you are using react-router-dom, use the Link component for navigation.
-                    This prevents full page reloads and 404s on client-side routes.
-                */}
-                {/* If not using react-router-dom, use a regular anchor tag */}
+            
                 <Link
                     to="/projects"
-                    className="px-6 py-3 bg-blue-700 text-white rounded-xl font-medium shadow-md hover:bg-blue-800 hover:shadow-2xl transition"
+                    className="px-6 py-3 bg-amber-500 text-white rounded-xl font-medium shadow-lg hover:bg-amber-600 hover:shadow-2xl transition"
                 >
                     View My Work
                 </Link>

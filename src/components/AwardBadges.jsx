@@ -24,7 +24,7 @@ return (
                 hover:border-b-4 hover:border-b-blue-400"
                 style={{
                     borderBottomWidth: '2px',
-                    boxShadow: ' 0 2px 8px 0 rgba(59, 130, 246, 0.15)', // pinkish + bluish shadow
+                    boxShadow: ' 0 2px 8px 0 rgba(77, 77, 77, 0.38)',
                 }}
             >
                 {award}
