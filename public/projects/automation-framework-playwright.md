@@ -32,40 +32,40 @@ This flow shows how feature files trigger the step definitions which in turn cal
 
 `
 ## `1. Directory Struture`
-![ Directory Struture](https://raw.githubusercontent.com/soumya-ranjan-000/image-hosting/refs/heads/main/playwright_cucumber.png)
+![ Directory Struture](https://raw.githubusercontent.com/soumya-ranjan-000/image-hosting/refs/heads/main/plawright_cucumber_java/playwright_cucumber.png)
 
 ## `2. Execute One Scenario`
-![Execute One Scenario](https://raw.githubusercontent.com/soumya-ranjan-000/image-hosting/refs/heads/main/scenario_execution.png)
+![Execute One Scenario](https://raw.githubusercontent.com/soumya-ranjan-000/image-hosting/refs/heads/main/plawright_cucumber_java/scenario_execution.png)
 
 ## `3. Cucumber Test Runner`
-![Cucumber Test Runner](https://github.com/soumya-ranjan-000/image-hosting/blob/main/cucumbertestrunner.png?raw=true)
+![Cucumber Test Runner](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/cucumbertestrunner.png?raw=true)
 
 ## `4. Cucumber Before & After Hooks`
-![Cucumber Before & After Hooks](https://github.com/soumya-ranjan-000/image-hosting/blob/main/before&after_hooks.png?raw=true)
+![Cucumber Before & After Hooks](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/before&after_hooks.png?raw=true)
 
 ## `5. Extent Report - Pass`
-![Extent Report - Pass](https://github.com/soumya-ranjan-000/image-hosting/blob/main/extent%20report%20-%20pass.png?raw=true)
+![Extent Report - Pass](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/extent%20report%20-%20pass.png?raw=true)
 
 ## `6. Extent Report - Fail`
-![xtent Report - Fail](https://github.com/soumya-ranjan-000/image-hosting/blob/main/extent%20report%20-%20fail.png?raw=true)
+![xtent Report - Fail](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/extent%20report%20-%20fail.png?raw=true)
 
 ## `7. Extent Report and Logger Setup`
-![Extent Report and Logger Setup](https://github.com/soumya-ranjan-000/image-hosting/blob/main/extentreport%20and%20logger%20setup.png?raw=true)
+![Extent Report and Logger Setup](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/extentreport%20and%20logger%20setup.png?raw=true)
 
 ## `8. Extent Report Config File`
-![Extent Report Config File](https://github.com/soumya-ranjan-000/image-hosting/blob/main/extentreport%20config%20file.png?raw=true)
+![Extent Report Config File](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/extentreport%20config%20file.png?raw=true)
 
 ## `9. Cross Browser Testing With BrowserStack & LambdaTest`
-![Cross Browser Testing With BrowserStack & LambdaTest](https://github.com/soumya-ranjan-000/image-hosting/blob/main/browserstackandlamdatestconnection.png?raw=true)
+![Cross Browser Testing With BrowserStack & LambdaTest](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/browserstackandlamdatestconnection.png?raw=true)
 
 ## `10. Page Object Model Using Yml file`
-![Page Object Model Using Yml file](https://github.com/soumya-ranjan-000/image-hosting/blob/main/PageObjectModel%20using%20yml%20file.png?raw=true)
+![Page Object Model Using Yml file](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/PageObjectModel%20using%20yml%20file.png?raw=true)
 
 ## `11. Playwright Config file`
-![Playwright Config file](https://github.com/soumya-ranjan-000/image-hosting/blob/main/playwright_config%20file.png?raw=true)
+![Playwright Config file](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/playwright_config%20file.png?raw=true)
 
 ## `12. Playwright Setup`
-![Playwright Setup](https://github.com/soumya-ranjan-000/image-hosting/blob/main/playwright_setup.png?raw=true)
+![Playwright Setup](https://github.com/soumya-ranjan-000/image-hosting/blob/main/plawright_cucumber_java/playwright_setup.png?raw=true)
 ---
 
 
