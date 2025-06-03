@@ -109,6 +109,14 @@ This project demonstrates a complete automated test reporting solution using:
 ### Swagger Page
 ![ Swagger Page Of Middle layer api](https://github.com/soumya-ranjan-000/image-hosting/blob/main/grafana_mogodb/springboot-middle-layer.png?raw=true)
 
+### REST API layer made using SpringBoot
+#### Spring controllor
+![ Springboot controllor](https://github.com/soumya-ranjan-000/image-hosting/blob/main/grafana_mogodb/springboot-controller.png?raw=true?raw=true)
+#### docker file
+![ docker file](https://github.com/soumya-ranjan-000/image-hosting/blob/main/grafana_mogodb/docker-file.png?raw=true)
+#### render.yml fie
+![ render.yml file](https://github.com/soumya-ranjan-000/image-hosting/blob/main/grafana_mogodb/render-yml.png?raw=true)
+
 ### Middle Layer - tellgrafan - REST API
 ![ Rest API in render](https://github.com/soumya-ranjan-000/image-hosting/blob/main/grafana_mogodb/RestAPI%20deployement%20in%20render.png?raw=true)
 
@@ -215,27 +223,11 @@ This project demonstrates a complete automated test reporting solution using:
     between test execution and insight-driven decisions.        
 
 ---
+##
+### 🔗 [Swagger API Documentation](https://grafana-mongo-api.onrender.com/swagger-ui/index.html)
 
-## 🧠 Related Blog
+### 🔗 [Grafana Dashboard](https://sdetsoumyaranjan.grafana.net/public-dashboards/e41ecae2fb6d414e8cbccb8731b312b1)
 
----
-
-
-## 🔗 GitHub Repository
-
-🔗 View Source on GitHub
-
-
----
-
-
-
-## 🎥 Demo Video
-
-Watch a short walkthrough of the framework:
-
-<iframe width="100%" height="400" src="https://www.youtube.com/watch?v=iUtnZpzkbG8&list=PLGoWuvyH709vpTCVrjaJtaaFfite9U6u8" title="Playwright Java Cucumber Demo" frameborder="0" allowfullscreen></iframe>
-
-*(Replace `your-video-id` with the actual YouTube video ID)*
+### 🔗 [Springboot repo](https://github.com/soumya-ranjan-000/tellgrafana)
 
 ---

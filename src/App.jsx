@@ -13,7 +13,7 @@ function App() {
   return (
     <Router>
       <Navbar />
-      <div style={{ marginTop: '1rem', minHeight: '80vh' }}>
+      <div>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />

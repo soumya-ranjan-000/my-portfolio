@@ -12,14 +12,14 @@ const awards = [
 function AwardBadges() {
 return (
     <div
-        className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center w-72 sm:w-[60rem] mx-auto p-4"
+        className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center w-72 sm:w-[80rem] mx-auto p-4"
         style={{ minHeight: '8rem' }}
     >
         {awards.map((award, idx) => (
             <span
                 key={idx}
                 className="inline-block border border-black-900 bg-stone-100 
-                text-zinc-900 px-4 py-2 rounded-full text-sm font-semibold 
+                text-zinc-900 px-2 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold 
                 shadow-xl transition-transform duration-200 hover:-translate-y-1 text-center
                 hover:border-b-4 hover:border-b-blue-400"
                 style={{

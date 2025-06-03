@@ -1,11 +1,22 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { useEffect } from 'react';
 
 function Navbar() {
 const [isOpen, setIsOpen] = useState(false);
 
+const [isSticky, setIsSticky] = useState(false);
+
+useEffect(() => {
+    const handleScroll = () => {
+        setIsSticky(window.scrollY > 0);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+
 return (
-    <nav className="bg-gray-900 shadow-lg fixed py-1 top-0 w-full z-50">
+    <nav className={`bg-gray-900 py-1 w-full z-50 transition-all duration-300 ${isSticky ? 'sticky top-0 shadow-2xl' : 'shadow-lg'}`}>
         <div className="max-w-7xl mx-auto px-4 py-1 flex justify-between items-center">
             <Link to="/" className="flex items-center space-x-2 group">
                 {/* Modern SRG Logo */}
