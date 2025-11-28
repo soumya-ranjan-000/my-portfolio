@@ -1,10 +1,10 @@
 export const projectsList = [
   {
-    id: "portfolio",
-    slug: "portfolio-website",
-    title: "React Portfolio Website",
-    image: "/images/projects/brand.png",
-    description: "My personal portfolio built with React and Tailwind CSS."
+    id: "robotframeworkwithplaywright",
+    slug: "robot-playwright",
+    title: "Robot Framework with Playwright",
+    image: "/images/projects/robot_playwright.png",
+    description: "A comprehensive BDD framework using Robot Framework and Playwright with Python."
   },
   {
     id: 'automation using plywright',
