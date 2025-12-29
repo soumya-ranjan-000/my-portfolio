@@ -50,65 +50,38 @@ robot-playwright-project/
 └── requirements.txt
 ```
 
-**Example `tests/login_tests.robot`:**
+##  Features
 
-```robotframework
-***Settings***
-Library    Browser
-Resource   resources/common_keywords.robot
+1. **Cross-Browser Testing:**
+    ```robotframework
+    ***Settings***
+    Library    Browser
+    Resource   resources/common_keywords.robot
+    ```
 
-***Test Cases***
-Successful Login
-    Open Browser To Login Page
-    Input Username    testuser
-    Input Password    password123
-    Click Login Button
-    Verify User Is Logged In
+2. **Keyword-Driven Testing:**
+    ```robotframework
+    ***Settings***
+    Library    Browser
+    Resource   resources/common_keywords.robot
+    ```
 
-Invalid Login
-    Open Browser To Login Page
-    Input Username    invaliduser
-    Input Password    wrongpassword
-    Click Login Button
-    Verify Login Error Message
-```
+3. **Page Object Model:**
+    ```robotframework
+    ***Settings***
+    Library    Browser
+    Resource   resources/common_keywords.robot
+    ```
 
-**Example `tests/resources/common_keywords.robot`:**
+4. **Parallel Execution:**
+    ```robotframework
+    ***Settings***
+    Library    Browser
+    Resource   resources/common_keywords.robot
+    ```
 
-```robotframework
-***Settings***
-Library    Browser
-Variables  ../../resources/config.py
 
-***Keywords***
-Open Browser To Login Page
-    New Browser    chromium    headless=${HEADLESS_MODE}
-    New Page    ${BASE_URL}/login
 
-Input Username
-    [Arguments]    ${username}
-    Fill Text    id=username    ${username}
-
-Input Password
-    [Arguments]    ${password}
-    Fill Text    id=password    ${password}
-
-Click Login Button
-    Click    button=Login
-
-Verify User Is Logged In
-    Get Text    .welcome-message    ==    Welcome, testuser!
-
-Verify Login Error Message
-    Get Text    .error-message    ==    Invalid credentials
-```
-
-**Example `resources/config.py`:**
-
-```python
-BASE_URL = "http://localhost:8080"
-HEADLESS_MODE = True # Set to False for visual debugging
-```
 
 ## Execution
 

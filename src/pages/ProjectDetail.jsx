@@ -2,6 +2,8 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { projectsList } from "../data/projects";
+import { motion } from 'framer-motion';
+import { FaGithub, FaTimes, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
 
 function ProjectDetail() {
   const { slug } = useParams();
@@ -20,39 +22,20 @@ function ProjectDetail() {
     }
   }, [project]);
 
-  if (!project) return <div className='mt-10'>Project not found</div>;
+  if (!project) return <div className='mt-20 text-center text-white'>Project not found</div>;
+
+  // Zoom / Popup Logic
   const [popupImg, setPopupImg] = useState(null);
   const [zoom, setZoom] = useState(1);
-
-  const handleZoomIn = (e) => {
-    e.stopPropagation();
-    setZoom((z) => Math.min(z + 0.2, 3));
-  };
-
-  const handleZoomOut = (e) => {
-    e.stopPropagation();
-    setZoom((z) => Math.max(z - 0.2, 0.5));
-  };
-
-  const handleClose = (e) => {
-    e.stopPropagation();
-    setPopupImg(null);
-    setZoom(1);
-  };
-
-  // State for dragging
   const [drag, setDrag] = useState({ isDragging: false, startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
 
-  // Handlers for drag events
+  const handleZoomIn = (e) => { e.stopPropagation(); setZoom((z) => Math.min(z + 0.2, 3)); };
+  const handleZoomOut = (e) => { e.stopPropagation(); setZoom((z) => Math.max(z - 0.2, 0.5)); };
+  const handleClose = (e) => { e.stopPropagation(); setPopupImg(null); setZoom(1); };
+
   const handleImgMouseDown = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDrag(d => ({
-      ...d,
-      isDragging: true,
-      startX: e.clientX,
-      startY: e.clientY
-    }));
+    e.preventDefault(); e.stopPropagation();
+    setDrag(d => ({ ...d, isDragging: true, startX: e.clientX, startY: e.clientY }));
   };
 
   const handleImgMouseMove = (e) => {
@@ -66,11 +49,8 @@ function ProjectDetail() {
     }));
   };
 
-  const handleImgMouseUp = () => {
-    setDrag(d => ({ ...d, isDragging: false }));
-  };
+  const handleImgMouseUp = () => setDrag(d => ({ ...d, isDragging: false }));
 
-  // Attach/remove mousemove/mouseup listeners when dragging
   useEffect(() => {
     if (drag.isDragging) {
       window.addEventListener('mousemove', handleImgMouseMove);
@@ -83,111 +63,109 @@ function ProjectDetail() {
       window.removeEventListener('mousemove', handleImgMouseMove);
       window.removeEventListener('mouseup', handleImgMouseUp);
     };
-    // eslint-disable-next-line
   }, [drag.isDragging]);
 
-  // Reset drag offset when popup closes
   useEffect(() => {
-    if (!popupImg) {
-      setDrag({ isDragging: false, startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
-    }
+    if (!popupImg) setDrag({ isDragging: false, startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
   }, [popupImg]);
 
   return (
     <>
-      <section
-        className="min-h-screen py-10 px-2 md:px-0 flex justify-center items-start bg-stone-100"
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen py-20 px-4 flex justify-center items-start"
       >
-        <div className="max-w-5xl w-full mx-auto px-8 py-2 mt-10 font-['Roboto'] bg-white rounded-2xl border border-gray-300 bg-stone-50 shadow-lg">
-          <ReactMarkdown components={{
-            h1: ({ node, ...props }) => <h1 className="text-4xl font-bold mt-6 mb-4 text-zinc-900" {...props} />,
-            h2: ({ node, ...props }) => <h2 className="text-2xl font-semibold mt-4 mb-2 text-gray-800" {...props} />,
-            p: ({ node, ...props }) => <p className="mb-4 text-gray-800" {...props} />,
-            img: ({ node, ...props }) => (
-              // eslint-disable-next-line jsx-a11y/alt-text
-              <img
-                className="rounded-md my-4 shadow cursor-pointer transition-transform"
-                {...props}
-                onClick={() => setPopupImg(props.src)}
-                style={{ maxWidth: "100%" }}
-              />
-            ),
-            a: ({ node, ...props }) => <a className="text-blue-600 underline" {...props} />,
-          }}>{content}</ReactMarkdown>
+        <div className="glass-card max-w-5xl w-full mx-auto px-8 py-10 rounded-2xl md:px-12">
+          {/* Header */}
+          <div className="mb-8 border-b border-white/10 pb-6">
+            <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">{project.title}</h1>
+            {project.github && (
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-900 border border-white/10 hover:border-primary-500/50 hover:text-primary-400 transition-colors"
+              >
+                <FaGithub /> <span>View Source</span>
+              </a>
+            )}
+          </div>
+
+          {/* Markdown Content */}
+          <div className="prose prose-invert prose-lg max-w-none">
+            <ReactMarkdown components={{
+              h1: ({ node, ...props }) => <h1 className="text-3xl font-bold mt-8 mb-4 text-white" {...props} />,
+              h2: ({ node, ...props }) => <h2 className="text-2xl font-semibold mt-6 mb-3 text-primary-400" {...props} />,
+              h3: ({ node, ...props }) => <h3 className="text-xl font-semibold mt-4 mb-2 text-primary-200" {...props} />,
+              p: ({ node, ...props }) => <p className="mb-4 text-slate-300 leading-relaxed" {...props} />,
+              ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4 text-slate-300" {...props} />,
+              li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+              strong: ({ node, ...props }) => <strong className="text-white font-bold" {...props} />,
+              img: ({ node, ...props }) => (
+                // eslint-disable-next-line jsx-a11y/alt-text
+                <img
+                  className="rounded-xl my-6 shadow-lg hover:shadow-primary-500/20 transition-all cursor-zoom-in border border-white/5"
+                  {...props}
+                  onClick={() => setPopupImg(props.src)}
+                  style={{ maxWidth: "100%" }}
+                />
+              ),
+              a: ({ node, ...props }) => <a className="text-primary-400 hover:text-primary-300 underline underline-offset-4" {...props} />,
+              code: ({ node, inline, ...props }) =>
+                inline
+                  ? <code className="bg-dark-900 px-1.5 py-0.5 rounded text-secondary-400 font-mono text-sm" {...props} />
+                  : <code className="block bg-dark-900 p-4 rounded-lg text-slate-300 font-mono text-sm overflow-x-auto my-4 border border-white/5" {...props} />,
+            }}>{content}</ReactMarkdown>
+          </div>
 
           {project.video && (
-            <div className="my-6">
-              <iframe
-                width="100%"
-                height="315"
-                src={project.video}
-                title="Project Video"
-                allowFullScreen
-                className="rounded shadow-lg"
-              />
+            <div className="mt-10">
+              <h3 className="text-2xl font-bold text-white mb-4">Demo Video</h3>
+              <div className="aspect-video rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={project.video}
+                  title="Project Video"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
             </div>
           )}
-
-          {project.github && (
-            <a
-              href={project.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 shadow transition-colors duration-200"
-            >
-              View GitHub Repo
-            </a>
-          )}
         </div>
-      </section>
+      </motion.section>
+
+      {/* Image Popup */}
       {popupImg && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm"
           onClick={handleClose}
         >
-          {/* Close button at top right of the screen */}
-                <button
-                className="fixed top-4 right-4 bg-white rounded-full p-2 shadow hover:bg-gray-200 z-50"
-                onClick={handleClose}
-                aria-label="Close image"
-                >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                </button>
-                <div className="relative max-w-xl w-full flex justify-center">
-                <img
-                  src={popupImg}
-                  alt="Full size"
-                  className="max-h-[60vh] max-w-[60vw] rounded shadow-lg transition-transform duration-200 cursor-grab active:cursor-grabbing"
-                  style={{
-                  transform: `scale(${zoom}) translate(${drag.offsetX}px, ${drag.offsetY}px)`,
-                  userSelect: "none"
-                  }}
-                  onClick={e => e.stopPropagation()}
-                  onMouseDown={handleImgMouseDown}
-                  draggable={false}
-                />
-            
-            <div className="absolute left-1/2 -translate-x-1/2 -bottom-14 flex gap-3 z-10">
-              <button
-                className="bg-white rounded-full p-2 shadow hover:bg-gray-200"
-                onClick={handleZoomOut}
-                aria-label="Zoom out"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                </svg>
-              </button>
-              <button
-                className="bg-white rounded-full p-2 shadow hover:bg-gray-200"
-                onClick={handleZoomIn}
-                aria-label="Zoom in"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
+          <button
+            className="fixed top-6 right-6 bg-dark-800 text-white rounded-full p-3 hover:bg-dark-700 transition z-50 border border-white/10"
+            onClick={handleClose}
+          >
+            <FaTimes size={20} />
+          </button>
+
+          <div className="relative max-w-4xl w-full flex justify-center" onClick={e => e.stopPropagation()}>
+            <img
+              src={popupImg}
+              alt="Full size"
+              className="max-h-[80vh] max-w-[90vw] rounded-lg shadow-2xl cursor-move"
+              style={{
+                transform: `scale(${zoom}) translate(${drag.offsetX}px, ${drag.offsetY}px)`,
+              }}
+              onMouseDown={handleImgMouseDown}
+              draggable={false}
+            />
+
+            <div className="absolute bottom-[-60px] left-1/2 -translate-x-1/2 flex gap-4 bg-dark-800/80 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md">
+              <button className="text-white hover:text-primary-400 transition" onClick={handleZoomOut}><FaSearchMinus size={20} /></button>
+              <span className="text-slate-400 text-sm py-1 min-w-[3rem] text-center">{Math.round(zoom * 100)}%</span>
+              <button className="text-white hover:text-primary-400 transition" onClick={handleZoomIn}><FaSearchPlus size={20} /></button>
             </div>
           </div>
         </div>

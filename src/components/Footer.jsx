@@ -1,24 +1,48 @@
-import { FaLinkedin, FaFacebook, FaTwitter } from 'react-icons/fa';
+import { FaLinkedin, FaFacebook, FaTwitter, FaGithub, FaEnvelope } from 'react-icons/fa';
 
 function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="w-full bg-gray-900 text-gray-300 py-2 z-50">
-      <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-        <p className="text-sm">&copy; {new Date().getFullYear()} Soumya Ranjan. All rights reserved.</p>
-        <div className="flex space-x-4 mt-4 md:mt-0">
-          <a href="https://www.linkedin.com/in/soumya-ranjan-ghadei7609/" target="_blank" rel="noopener noreferrer">
-            <FaLinkedin size={24} className="hover:text-gray-300 transition" />
-          </a>
-          <a href="https://www.facebook.com/your-profile" target="_blank" rel="noopener noreferrer">
-            <FaFacebook size={24} className="hover:text-gray-300 transition" />
-          </a>
-          <a href="https://twitter.com/your-profile" target="_blank" rel="noopener noreferrer">
-            <FaTwitter size={24} className="hover:text-gray-300 transition" />
-          </a>
+    <footer className="w-full bg-dark-900 border-t border-white/5 py-8 mt-auto z-40 relative">
+      <div className="container mx-auto px-6">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+
+          {/* Brand */}
+          <div className="text-center md:text-left">
+            <h3 className="text-lg font-heading font-bold text-white mb-1">Soumya Ranjan</h3>
+            <p className="text-slate-400 text-sm">Building digital experiences.</p>
+          </div>
+
+          {/* Social Links */}
+          <div className="flex items-center gap-6">
+            <SocialLink href="https://linkedin.com" icon={<FaLinkedin />} label="LinkedIn" />
+            <SocialLink href="https://github.com" icon={<FaGithub />} label="GitHub" />
+            <SocialLink href="https://twitter.com" icon={<FaTwitter />} label="Twitter" />
+            <SocialLink href="mailto:hello@example.com" icon={<FaEnvelope />} label="Email" />
+          </div>
+
+          {/* Copyright */}
+          <div className="text-slate-500 text-sm">
+            &copy; {currentYear} All rights reserved.
+          </div>
         </div>
       </div>
     </footer>
   );
 }
+
+// Simple internal helper for social links
+const SocialLink = ({ href, icon, label }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-slate-400 hover:text-primary-400 transition-colors transform hover:scale-110 duration-200 text-xl"
+    aria-label={label}
+  >
+    {icon}
+  </a>
+);
 
 export default Footer;

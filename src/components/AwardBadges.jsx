@@ -1,37 +1,34 @@
-// AwardBadges.jsx
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const awards = [
-  'Habit Bearer Award 🎗️',
-  'Victory League Award 🏆',
-  'The Bright Beginning Award 🌟',
-  'Inspiring Performance Award 🏅',
-  'Habit Flagbearer - Demonstrating Stewardship Award 🏳️‍🌈',
+    'Habit Bearer Award 🎗️',
+    'Victory League Award 🏆',
+    'The Bright Beginning Award 🌟',
+    'Inspiring Performance Award 🏅',
+    'Habit Flagbearer - Demonstrating Stewardship Award 🏳️‍🌈',
 ];
 
 function AwardBadges() {
-return (
-    <div
-        className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center w-72 sm:w-[80rem] mx-auto p-4"
-        style={{ minHeight: '8rem' }}
-    >
-        {awards.map((award, idx) => (
-            <span
-                key={idx}
-                className="inline-block border border-black-900 bg-stone-100 
-                text-zinc-900 px-2 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold 
-                shadow-xl transition-transform duration-200 hover:-translate-y-1 text-center
-                hover:border-b-4 hover:border-b-blue-400"
-                style={{
-                    borderBottomWidth: '2px',
-                    boxShadow: ' 0 2px 8px 0 rgba(77, 77, 77, 0.38)',
-                }}
-            >
-                {award}
-            </span>
-        ))}
-    </div>
-);
+    return (
+        <div
+            className="flex flex-wrap gap-4 justify-center items-center max-w-5xl mx-auto p-4"
+        >
+            {awards.map((award, idx) => (
+                <motion.span
+                    key={idx}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.05, rotate: -2 }}
+                    transition={{ delay: idx * 0.1 }}
+                    viewport={{ once: true }}
+                    className="inline-block px-6 py-3 rounded-full text-sm font-semibold glass border border-white/10 text-slate-200 shadow-lg hover:border-primary-400/50 hover:bg-white/10 transition-colors duration-300 cursor-default"
+                >
+                    {award}
+                </motion.span>
+            ))}
+        </div>
+    );
 }
 
 export default AwardBadges;

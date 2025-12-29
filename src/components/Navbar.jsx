@@ -1,114 +1,134 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HiMenuAlt3, HiX } from 'react-icons/hi'; // Assuming react-icons is installed
 
 function Navbar() {
-const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+    const location = useLocation();
 
-const [isSticky, setIsSticky] = useState(false);
+    const navLinks = [
+        { name: 'Home', path: '/' },
+        { name: 'Projects', path: '/projects' },
+        { name: 'Articles', path: '/articles' },
+        { name: 'About', path: '/about' },
+        { name: 'Contact', path: '/contact' },
+    ];
 
-useEffect(() => {
-    const handleScroll = () => {
-        setIsSticky(window.scrollY > 0);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-}, []);
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
-return (
-    <nav className={`bg-gray-900 py-1 w-full z-50 transition-all duration-300 ${isSticky ? 'sticky top-0 shadow-2xl' : 'shadow-lg'}`}>
-        <div className="max-w-7xl mx-auto px-4 py-1 flex justify-between items-center">
-            <Link to="/" className="flex items-center space-x-2 group">
-                {/* Modern SRG Logo */}
-                <svg
-                    className="h-10 w-10 transition-transform group-hover:rotate-6 group-hover:scale-110"
-                    viewBox="0 0 48 48"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <circle cx="24" cy="24" r="22" fill="url(#srg-logo-gradient)" stroke="#fff" strokeWidth="2"/>
-                    <defs>
-                        <radialGradient id="srg-logo-gradient" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stopColor="#a5b4fc"/>
-                            <stop offset="100%" stopColor="#6366f1"/>
-                        </radialGradient>
-                    </defs>
-                    {/* S */}
-                    <path
-                        d="M16 32c0 2.5 3 4 6 4s6-1.5 6-4-3-3-6-3-6-1.5-6-4 3-4 6-4 6 1.5 6 4"
-                        stroke="#fff"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        fill="none"
-                        filter="url(#shadow)"
-                    />
-                    {/* R */}
-                    <path
-                        d="M28 16v16m0-8c3 0 6-1.5 6-4s-3-4-6-4"
-                        stroke="#fff"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        fill="none"
-                    />
-                    <path
-                        d="M28 24l5 8"
-                        stroke="#fff"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        fill="none"
-                    />
-                    {/* G */}
-                    <path
-                        d="M36 28c0 4-2.5 7-7 7s-7-3-7-7 2.5-7 7-7c2.5 0 5 1 6 3"
-                        stroke="#fff"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        fill="none"
-                    />
-                    <path
-                        d="M34 30h-4"
-                        stroke="#fff"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        fill="none"
-                    />
-                </svg>
-                <span className="text-white font-extrabold text-xl tracking-widest drop-shadow-lg hidden sm:inline">SRG</span>
-            </Link>
-            
-            <button
-                className="md:hidden flex items-center px-2 py-1 border rounded text-white border-white bg-white/10 hover:bg-white/20 transition"
-                onClick={() => setIsOpen(!isOpen)}
-                aria-label="Toggle menu"
+    // Close menu when route changes
+    useEffect(() => {
+        setIsOpen(false);
+    }, [location]);
+
+    return (
+        <nav
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-4' : 'py-6'
+                }`}
+        >
+            <div
+                className={`mx-auto max-w-7xl px-6 transition-all duration-300 ${scrolled ? 'bg-dark-900/40 backdrop-blur-xl shadow-2xl border border-white/10' : ''
+                    } rounded-full mt-2`}
+                // Note: The rounded/margin approach gives it a floating island feel if restricted width, 
+                // but here we are doing full width sticky header or floating depending on preference.
+                // Let's go effectively full width for better UX on standard sites, but glass effect.
+                style={{
+                    // Resetting some classes for the specific "floating island" look if desired
+                    maxWidth: scrolled ? '85%' : '1280px', // Shrink slightly on scroll for effect
+                    marginTop: scrolled ? '1rem' : '0',
+                    borderRadius: scrolled ? '9999px' : '0', // Fully rounded pills
+                }}
             >
-                <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {isOpen ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                    ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-                    )}
-                </svg>
-            </button>
+                <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? 'py-2' : 'py-0'}`}>
+                    {/* Logo */}
+                    <Link to="/" className="flex items-center gap-2 group">
+                        <div className="relative w-10 h-10 flex items-center justify-center rounded-full overflow-hidden border-2 border-primary-500 shadow-lg group-hover:shadow-primary-500/30 transition-all duration-300">
+                            <img
+                                src="/images/profile.png"
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://ui-avatars.com/api/?name=Soumya+Ranjan&background=0D8ABC&color=fff";
+                                }}
+                            />
+                        </div>
+                        <span className="text-xl font-heading font-bold text-white tracking-wide group-hover:text-primary-400 transition-colors">
+                            SRG
+                        </span>
+                    </Link>
 
-            <ul className="hidden md:flex space-x-6 text-gray-200 text-l font-['Raleway',sans-serif] font-light">
-                <li><Link className="hover:text-indigo-200 transition" to="/">Home</Link></li>
-                <li><Link className="hover:text-indigo-200 transition" to="/projects">Projects</Link></li>
-                <li><Link className="hover:text-indigo-200 transition" to="/articles">Articles</Link></li>
-                <li><Link className="hover:text-indigo-200 transition" to="/about">About</Link></li>
-                <li><Link className="hover:text-indigo-200 transition" to="/contact">Contact</Link></li>
-            </ul>
+                    {/* Desktop Navigation */}
+                    <ul className="hidden md:flex items-center gap-8">
+                        {navLinks.map((link) => (
+                            <li key={link.name}>
+                                <Link
+                                    to={link.path}
+                                    className={`relative text-sm font-medium transition-colors hover:text-primary-400 ${location.pathname === link.path ? 'text-white' : 'text-slate-400'
+                                        }`}
+                                >
+                                    {link.name}
+                                    {location.pathname === link.path && (
+                                        <motion.div
+                                            layoutId="navbar-indicator"
+                                            className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full"
+                                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                                        />
+                                    )}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+
+                    {/* Mobile Menu Button */}
+                    <div className="md:hidden">
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="p-2 text-slate-300 hover:text-white transition-colors"
+                        >
+                            {isOpen ? <HiX size={28} /> : <HiMenuAlt3 size={28} />}
+                        </button>
+                    </div>
+                </div>
             </div>
-        {isOpen && (
-            <ul className="md:hidden px-4 pb-3 pt-2 space-y-2 text-white text-m font-['Raleway',sans-serif] font-light">
-                <li><Link to="/" onClick={() => setIsOpen(false)} className="block hover:text-indigo-200 transition">Home</Link></li>
-                <li><Link to="/projects" onClick={() => setIsOpen(false)} className="block hover:text-indigo-200 transition">Projects</Link></li>
-                <li><Link to="/articles" onClick={() => setIsOpen(false)} className="block hover:text-indigo-200 transition">Articles</Link></li>
-                <li><Link to="/about" onClick={() => setIsOpen(false)} className="block hover:text-indigo-200 transition">About</Link></li>
-                <li><Link to="/contact" onClick={() => setIsOpen(false)} className="block hover:text-indigo-200 transition">Contact</Link></li>
-            </ul>
-        )}
-    </nav>
-);
+
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="absolute top-20 left-4 right-4 bg-dark-800/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl md:hidden z-40"
+                    >
+                        <ul className="flex flex-col gap-4">
+                            {navLinks.map((link) => (
+                                <li key={link.name}>
+                                    <Link
+                                        to={link.path}
+                                        className={`block text-lg font-medium p-2 rounded-lg transition-colors ${location.pathname === link.path
+                                            ? 'bg-white/10 text-white'
+                                            : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                            }`}
+                                    >
+                                        {link.name}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </nav>
+    );
 }
 
 export default Navbar;
