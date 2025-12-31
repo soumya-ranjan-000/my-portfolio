@@ -19,5 +19,12 @@ export const projectsList = [
     title: 'Andvance Reporting using grafana & mongodb',
     image: '/images/projects/grafana_mongo.png',
     description: 'Create advanced reports using Grafana and MongoDB for data visualization.',
+  },
+  {
+    id: 'Self-Healing Robot Framework Using Gemini',
+    slug: "self-healing-robot-framework-gemini",
+    title: 'Self-Healing Robot Framework Using Gemini',
+    image: '/images/projects/gemini.png',
+    description: 'Create self-healing framework using Robot Framework and Gemini.',
   }
 ];
