@@ -41,7 +41,7 @@ function HeroSection() {
                 transition={{ delay: 0.3, duration: 0.5 }}
                 className="text-xl md:text-2xl text-slate-400 mb-10 h-8 font-light"
             >
-                <TypingEffect text="SDET & Automation Engineer building modern frameworks." />
+                <TypingEffect text=" A QA Automation Engineer & SDET building modern frameworks." />
             </motion.div>
 
             {/* CTA Buttons */}
