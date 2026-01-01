@@ -24,7 +24,7 @@ export const projectsList = [
     id: 'Self-Healing Robot Framework Using Gemini',
     slug: "self-healing-robot-framework-gemini",
     title: 'Self-Healing Robot Framework Using Gemini',
-    image: '/images/projects/gemini.png',
+    image: '/images/projects/selenium_self_healing.png',
     description: 'Create self-healing framework using Robot Framework and Gemini.',
   }
 ];
