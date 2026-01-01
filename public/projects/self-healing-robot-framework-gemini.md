@@ -67,3 +67,10 @@ The diagram below shows how the framework handles a failure and recovers automat
 
 ![App Screenshot](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/img6.png?raw=true)
 
+---
+
+## Demo Video
+
+Demo (direct video file):
+
+[Watch demo](https://youtu.be/qzRNMPxzt8I)

@@ -26,6 +26,7 @@ function ProjectDetail() {
 
   // Zoom / Popup Logic
   const [popupImg, setPopupImg] = useState(null);
+  const [videoModal, setVideoModal] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [drag, setDrag] = useState({ isDragging: false, startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
 
@@ -111,7 +112,55 @@ function ProjectDetail() {
                   style={{ maxWidth: "100%" }}
                 />
               ),
-              a: ({ node, ...props }) => <a className="text-primary-400 hover:text-primary-300 underline underline-offset-4" {...props} />,
+              a: ({ node, ...props }) => {
+                const href = props.href || '';
+                const children = props.children;
+
+                // YouTube short/long links
+                const ytMatch = href && href.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+
+                // Direct video files (mp4/webm/ogg)
+                if (href.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+                  return (
+                    // eslint-disable-next-line jsx-a11y/media-has-caption
+                    <video controls className="w-full rounded-xl my-6" src={href}>
+                      Your browser does not support the video tag.
+                    </video>
+                  );
+                }
+
+                if (ytMatch) {
+                  const id = ytMatch[1];
+                  const src = `https://www.youtube.com/embed/${id}`;
+                  return (
+                    <div className="aspect-video rounded-xl overflow-hidden my-6 border border-white/10 shadow-lg">
+                      <iframe src={src} title="YouTube video" allowFullScreen className="w-full h-full" frameBorder="0" />
+                    </div>
+                  );
+                }
+
+                const text = (Array.isArray(children) ? children.join('') : children) || '';
+                const shouldOpenAsVideo = /demo|watch|video/i.test(text) || /user-attachments|raw.githubusercontent.com/.test(href);
+
+                const handleClick = (e) => {
+                  if (shouldOpenAsVideo) {
+                    e.preventDefault();
+                    setVideoModal(href);
+                  }
+                };
+
+                return (
+                  <a
+                    className="text-primary-400 hover:text-primary-300 underline underline-offset-4"
+                    href={href}
+                    onClick={handleClick}
+                    target={shouldOpenAsVideo ? undefined : '_blank'}
+                    rel={shouldOpenAsVideo ? undefined : 'noopener noreferrer'}
+                  >
+                    {children}
+                  </a>
+                );
+              },
               code: ({ node, inline, ...props }) =>
                 inline
                   ? <code className="bg-dark-900 px-1.5 py-0.5 rounded text-secondary-400 font-mono text-sm" {...props} />
@@ -167,6 +216,24 @@ function ProjectDetail() {
               <span className="text-slate-400 text-sm py-1 min-w-[3rem] text-center">{Math.round(zoom * 100)}%</span>
               <button className="text-white hover:text-primary-400 transition" onClick={handleZoomIn}><FaSearchPlus size={20} /></button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Video Modal */}
+      {videoModal && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          onClick={() => setVideoModal(null)}
+        >
+          <button
+            className="fixed top-6 right-6 bg-dark-800 text-white rounded-full p-3 hover:bg-dark-700 transition z-80 border border-white/10"
+            onClick={(e) => { e.stopPropagation(); setVideoModal(null); }}
+          >
+            <FaTimes size={20} />
+          </button>
+
+          <div className="relative max-w-4xl w-full px-4" onClick={e => e.stopPropagation()}>
+            <video controls className="w-full max-h-[80vh] rounded-lg shadow-2xl" src={videoModal} />
           </div>
         </div>
       )}
