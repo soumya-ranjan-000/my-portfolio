@@ -69,8 +69,20 @@ The diagram below shows how the framework handles a failure and recovers automat
 
 ---
 
+## Screenshots
+
+![Jenkins Screenshot](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/jenkins_build_result.png?raw=true)
+
+![Jenkins Screenshot](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/jenkins_build_result_2.png?raw=true)
+
 ## Demo Video
 
-Demo (direct video file):
+### Local Execution:
 
 [Watch demo](https://youtu.be/qzRNMPxzt8I)
+
+---
+
+### Jenkins Execution:
+
+[Watch it running on jenkins](https://youtu.be/IFJchvDbRck)
