@@ -75,6 +75,18 @@ The diagram below shows how the framework handles a failure and recovers automat
 
 ![Jenkins Screenshot](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/jenkins_build_result_2.png?raw=true)
 
+### Auto Pull Requst Creation from Jenkins after sucessfull build:
+
+![PR Creation 1](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/Auto%20PR%20Creation%201.png?raw=true)
+
+![PR Creation 2](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/Auto%20PR%20Creation%202.png?raw=true)
+
+![PR Creation 3](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/Auto%20PR%20Creation%203.png?raw=true)
+
+![PR Creation 4](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/Auto%20PR%20Creation%204.png?raw=true)
+
+![PR Creation 5](https://github.com/soumya-ranjan-000/image-hosting/blob/main/Self-Healing%20Selenium%20Robot%20Framework/Auto%20PR%20Creation%205.png?raw=true)
+
 ## Demo Video
 
 ### Local Execution:
