@@ -16,10 +16,10 @@ function Footer() {
 
           {/* Social Links */}
           <div className="flex items-center gap-6">
-            <SocialLink href="https://linkedin.com" icon={<FaLinkedin />} label="LinkedIn" />
-            <SocialLink href="https://github.com" icon={<FaGithub />} label="GitHub" />
+            <SocialLink href="https://www.linkedin.com/in/soumya-ranjan-ghadei7609" icon={<FaLinkedin />} label="LinkedIn" />
+            <SocialLink href="https://github.com/soumya-ranjan-000" icon={<FaGithub />} label="GitHub" />
             <SocialLink href="https://twitter.com" icon={<FaTwitter />} label="Twitter" />
-            <SocialLink href="mailto:hello@example.com" icon={<FaEnvelope />} label="Email" />
+            <SocialLink href="mailto:rakiraja7751841655@gmail.com" icon={<FaEnvelope />} label="Email" />
           </div>
 
           {/* Copyright */}

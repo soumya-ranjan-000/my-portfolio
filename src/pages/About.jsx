@@ -29,6 +29,23 @@ function About() {
                         When I'm not coding, you can find me exploring new tech trends, contributing to open source, or gaming.
                         I believe in the power of clean code and efficient automation to make software delivery smoother and faster.
                     </p>
+                    <div className="mt-8 flex flex-wrap gap-4">
+                        <a
+                            href="/resume.pdf"
+                            download
+                            className="inline-flex items-center gap-2 px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-md font-medium transition"
+                        >
+                            Download Resume
+                        </a>
+                        <a
+                            href="/resume.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-5 py-3 border border-white/10 text-white rounded-md font-medium hover:bg-white/5 transition"
+                        >
+                            View Resume
+                        </a>
+                    </div>
                 </div>
                 {/* Placeholder for Image or Abstract Graphic */}
                 <div className="md:w-1/2 flex justify-center">
