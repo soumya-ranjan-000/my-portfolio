@@ -1,4 +1,9 @@
 import { motion } from 'framer-motion';
+import { aboutMeData } from '../data/aboutMe';
+import Overview from '../components/about/Overview';
+import Timeline from '../components/about/Timeline';
+import Certifications from '../components/about/Certifications';
+import Awards from '../components/about/Awards';
 
 function About() {
     const skills = [
@@ -35,6 +40,9 @@ function About() {
                             download
                             className="inline-flex items-center gap-2 px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-md font-medium transition"
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
                             Download Resume
                         </a>
                         <a
@@ -43,6 +51,10 @@ function About() {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 px-5 py-3 border border-white/10 text-white rounded-md font-medium hover:bg-white/5 transition"
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                             View Resume
                         </a>
                     </div>
@@ -66,12 +78,45 @@ function About() {
                 </div>
             </motion.div>
 
+            {/* Overview Section */}
+            <Overview data={aboutMeData.overview} />
+
+            {/* Work History Section */}
+            <Timeline
+                title="Work History"
+                data={aboutMeData.workHistory}
+                icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                }
+            />
+
+            {/* Education Section */}
+            <Timeline
+                title="Education"
+                data={aboutMeData.education}
+                icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                        <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                    </svg>
+                }
+            />
+
+            {/* Certifications & Awards Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 py-10">
+                <Certifications data={aboutMeData.certifications} />
+                <Awards data={aboutMeData.awards} />
+            </div>
+
             {/* Skills Section */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
                 viewport={{ once: true }}
+                className="pt-10"
             >
                 <h3 className="text-3xl font-heading font-bold text-white mb-10 text-center">Technical <span className="text-primary-400">Skills</span></h3>
 
