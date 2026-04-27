@@ -32,7 +32,7 @@ function Contact() {
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-white mb-1">Email</h3>
-                            <p className="text-slate-400">hello@example.com</p>
+                            <p className="text-slate-400">rakiraja7751841655@gmail.com</p>
                         </div>
                     </div>
 
@@ -42,7 +42,7 @@ function Contact() {
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-white mb-1">Location</h3>
-                            <p className="text-slate-400">Bhubaneswar, India</p>
+                            <p className="text-slate-400">Bangalore, India</p>
                         </div>
                     </div>
                 </motion.div>

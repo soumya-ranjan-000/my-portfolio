@@ -26,5 +26,12 @@ export const projectsList = [
     title: 'Self-Healing Robot Framework Using Gemini',
     image: '/images/projects/selenium_self_healing.png',
     description: 'Create self-healing framework using Robot Framework and Gemini.',
+  },
+  {
+    id: 'Test End to End Kafka Event Streaming Service',
+    slug: "TestKafkaEventStreamingService",
+    title: 'End-to-End Test Automation for Modern Microservices',
+    image: '/images/projects/KafkaTesting.png',
+    description: 'Automation framework for validating Kafka event streaming services',
   }
 ];
