@@ -1,28 +1,57 @@
 import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { projectsList } from "../data/projects";
 import { motion } from 'framer-motion';
 import { FaGithub, FaTimes, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
+import CodeBlock from '../components/CodeBlock';
+
+import { fetchCMSContent } from '../hooks/useCMS';
+
+const OWNER = import.meta.env.VITE_GITHUB_REPO_OWNER;
+const REPO = import.meta.env.VITE_GITHUB_REPO_NAME;
+const BRANCH = import.meta.env.VITE_GITHUB_REPO_BRANCH || 'main';
 
 function ProjectDetail() {
   const { slug } = useParams();
-  const project = projectsList.find(p => p.slug === slug);
+  const [project, setProject] = useState(null);
   const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (project) {
-      fetch(`/projects/${project.slug}.md`)
-        .then((res) => res.text())
-        .then(setContent)
-        .catch((err) => {
-          console.error("Error fetching markdown:", err);
-          setContent("Could not load project details.");
-        });
-    }
-  }, [project]);
+    const loadProjectData = async () => {
+      setLoading(true);
+      try {
+        // 1. Try static list first
+        const staticMatch = projectsList.find(p => p.slug === slug);
+        if (staticMatch) {
+          setProject(staticMatch);
+          const text = await fetchCMSContent(slug, 'projects');
+          setContent(text);
+          setLoading(false);
+          return;
+        }
 
-  if (!project) return <div className='mt-20 text-center text-white'>Project not found</div>;
+        // 2. Fetch from CMS (JSON metadata + MD body)
+        const metadataUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/data/projects/${slug}.json?t=${Date.now()}`;
+        const metaRes = await fetch(metadataUrl);
+        if (!metaRes.ok) throw new Error('Project not found in CMS');
+
+        const metaData = await metaRes.json();
+        setProject(metaData);
+
+        const text = await fetchCMSContent(slug, 'projects');
+        setContent(text);
+      } catch (err) {
+        console.error("Error fetching dynamic project:", err);
+        setContent("Could not load project details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) loadProjectData();
+  }, [slug]);
 
   // Zoom / Popup Logic
   const [popupImg, setPopupImg] = useState(null);
@@ -70,6 +99,138 @@ function ProjectDetail() {
     if (!popupImg) setDrag({ isDragging: false, startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
   }, [popupImg]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-dark-900 text-slate-200">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-lg font-medium text-slate-400">Loading project details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const markdownComponents = {
+    h1: ({ node, ...props }) => (
+      <h1 className="text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2" {...props} />
+    ),
+    h2: ({ node, ...props }) => (
+      <h2 className="text-2xl font-semibold font-heading mt-6 mb-3 text-primary-400" {...props} />
+    ),
+    h3: ({ node, ...props }) => (
+      <h3 className="text-xl font-semibold font-heading mt-5 mb-2 text-secondary-400" {...props} />
+    ),
+    p: ({ node, ...props }) => (
+      <p className="mb-4 text-slate-300 leading-relaxed tracking-wide text-sm md:text-base" {...props} />
+    ),
+    ul: ({ node, ...props }) => (
+      <ul className="list-disc list-inside mb-4 pl-2 text-slate-300 marker:text-primary-500 space-y-1 text-sm md:text-base" {...props} />
+    ),
+    ol: ({ node, ...props }) => (
+      <ol className="list-decimal list-inside mb-4 pl-2 text-slate-300 marker:text-secondary-500 space-y-1 text-sm md:text-base" {...props} />
+    ),
+    li: ({ node, ...props }) => (
+      <li className="mb-1 hover:text-slate-200 transition-colors" {...props} />
+    ),
+    strong: ({ node, ...props }) => (
+      <strong className="text-white font-bold" {...props} />
+    ),
+    blockquote: ({ node, ...props }) => (
+      <blockquote className="border-l-4 border-primary-500 bg-primary-500/5 px-5 py-3 rounded-r-xl my-4 italic text-slate-400 font-medium text-sm md:text-base" {...props} />
+    ),
+    hr: ({ node, ...props }) => (
+      <hr className="my-8 h-px border-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" {...props} />
+    ),
+    table: ({ node, ...props }) => (
+      <div className="overflow-x-auto my-6 border border-white/5 rounded-xl">
+        <table className="min-w-full divide-y divide-white/5" {...props} />
+      </div>
+    ),
+    thead: ({ node, ...props }) => <thead className="bg-white/3" {...props} />,
+    tbody: ({ node, ...props }) => <tbody className="divide-y divide-white/5" {...props} />,
+    tr: ({ node, ...props }) => <tr className="hover:bg-white/1 transition-colors" {...props} />,
+    th: ({ node, ...props }) => <th className="px-4 py-2 text-left text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-white/5" {...props} />,
+    td: ({ node, ...props }) => <td className="px-4 py-2.5 text-xs md:text-sm text-slate-300 font-medium" {...props} />,
+    pre: ({ node, children, ...props }) => {
+      const codeChild = React.Children.toArray(children)[0];
+      if (codeChild && codeChild.props) {
+        return (
+          <CodeBlock 
+            className={codeChild.props.className} 
+            inline={false}
+          >
+            {codeChild.props.children}
+          </CodeBlock>
+        );
+      }
+      return <pre {...props}>{children}</pre>;
+    },
+    code: ({ node, className, children, ...props }) => (
+      <CodeBlock inline={true} className={className} {...props}>
+        {children}
+      </CodeBlock>
+    ),
+    img: ({ node, ...props }) => (
+      <img
+        className="rounded-xl my-6 shadow-lg hover:shadow-primary-500/20 transition-all cursor-zoom-in border border-white/5 max-h-[450px] object-cover"
+        {...props}
+        onClick={() => setPopupImg(props.src)}
+        style={{ maxWidth: "100%" }}
+        alt={props.alt || 'Project asset'}
+      />
+    ),
+    a: ({ node, ...props }) => {
+      const href = props.href || '';
+      const children = props.children;
+
+      // YouTube short/long links
+      const ytMatch = href && href.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+
+      // Direct video files (mp4/webm/ogg)
+      if (href.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+        return (
+          <video controls className="w-full rounded-xl my-6" src={href}>
+            Your browser does not support the video tag.
+          </video>
+        );
+      }
+
+      if (ytMatch) {
+        const id = ytMatch[1];
+        const src = `https://www.youtube.com/embed/${id}`;
+        return (
+          <div className="aspect-video rounded-xl overflow-hidden my-6 border border-white/10 shadow-lg">
+            <iframe src={src} title="YouTube video" allowFullScreen className="w-full h-full" frameBorder="0" />
+          </div>
+        );
+      }
+
+      const text = (Array.isArray(children) ? children.join('') : children) || '';
+      const shouldOpenAsVideo = /demo|watch|video/i.test(text) || /user-attachments|raw.githubusercontent.com/.test(href);
+
+      const handleClick = (e) => {
+        if (shouldOpenAsVideo) {
+          e.preventDefault();
+          setVideoModal(href);
+        }
+      };
+
+      return (
+        <a
+          className="text-primary-400 hover:text-primary-300 underline underline-offset-4 font-semibold"
+          href={href}
+          onClick={handleClick}
+          target={shouldOpenAsVideo ? undefined : '_blank'}
+          rel={shouldOpenAsVideo ? undefined : 'noopener noreferrer'}
+        >
+          {children}
+        </a>
+      );
+    }
+  };
+
+  if (!project) return <div className='mt-20 text-center text-white'>Project not found</div>;
+
   return (
     <>
       <motion.section
@@ -95,77 +256,7 @@ function ProjectDetail() {
 
           {/* Markdown Content */}
           <div className="prose prose-invert prose-lg max-w-none">
-            <ReactMarkdown components={{
-              h1: ({ node, ...props }) => <h1 className="text-3xl font-bold mt-8 mb-4 text-white" {...props} />,
-              h2: ({ node, ...props }) => <h2 className="text-2xl font-semibold mt-6 mb-3 text-primary-400" {...props} />,
-              h3: ({ node, ...props }) => <h3 className="text-xl font-semibold mt-4 mb-2 text-primary-200" {...props} />,
-              p: ({ node, ...props }) => <p className="mb-4 text-slate-300 leading-relaxed" {...props} />,
-              ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4 text-slate-300" {...props} />,
-              li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-              strong: ({ node, ...props }) => <strong className="text-white font-bold" {...props} />,
-              img: ({ node, ...props }) => (
-                // eslint-disable-next-line jsx-a11y/alt-text
-                <img
-                  className="rounded-xl my-6 shadow-lg hover:shadow-primary-500/20 transition-all cursor-zoom-in border border-white/5"
-                  {...props}
-                  onClick={() => setPopupImg(props.src)}
-                  style={{ maxWidth: "100%" }}
-                />
-              ),
-              a: ({ node, ...props }) => {
-                const href = props.href || '';
-                const children = props.children;
-
-                // YouTube short/long links
-                const ytMatch = href && href.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-
-                // Direct video files (mp4/webm/ogg)
-                if (href.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
-                  return (
-                    // eslint-disable-next-line jsx-a11y/media-has-caption
-                    <video controls className="w-full rounded-xl my-6" src={href}>
-                      Your browser does not support the video tag.
-                    </video>
-                  );
-                }
-
-                if (ytMatch) {
-                  const id = ytMatch[1];
-                  const src = `https://www.youtube.com/embed/${id}`;
-                  return (
-                    <div className="aspect-video rounded-xl overflow-hidden my-6 border border-white/10 shadow-lg">
-                      <iframe src={src} title="YouTube video" allowFullScreen className="w-full h-full" frameBorder="0" />
-                    </div>
-                  );
-                }
-
-                const text = (Array.isArray(children) ? children.join('') : children) || '';
-                const shouldOpenAsVideo = /demo|watch|video/i.test(text) || /user-attachments|raw.githubusercontent.com/.test(href);
-
-                const handleClick = (e) => {
-                  if (shouldOpenAsVideo) {
-                    e.preventDefault();
-                    setVideoModal(href);
-                  }
-                };
-
-                return (
-                  <a
-                    className="text-primary-400 hover:text-primary-300 underline underline-offset-4"
-                    href={href}
-                    onClick={handleClick}
-                    target={shouldOpenAsVideo ? undefined : '_blank'}
-                    rel={shouldOpenAsVideo ? undefined : 'noopener noreferrer'}
-                  >
-                    {children}
-                  </a>
-                );
-              },
-              code: ({ node, inline, ...props }) =>
-                inline
-                  ? <code className="bg-dark-900 px-1.5 py-0.5 rounded text-secondary-400 font-mono text-sm" {...props} />
-                  : <code className="block bg-dark-900 p-4 rounded-lg text-slate-300 font-mono text-sm overflow-x-auto my-4 border border-white/5" {...props} />,
-            }}>{content}</ReactMarkdown>
+            <ReactMarkdown components={markdownComponents}>{content}</ReactMarkdown>
           </div>
 
           {project.video && (

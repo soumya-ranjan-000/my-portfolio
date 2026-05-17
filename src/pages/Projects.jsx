@@ -1,8 +1,11 @@
 import ProjectCard from '../components/ProjectCard';
-import { projectsList } from "../data/projects";
+import { useCMS } from "../hooks/useCMS";
 import { motion } from 'framer-motion';
+import { FaSpinner } from 'react-icons/fa';
 
 function Projects() {
+    const { projects, loadingProjects } = useCMS();
+
     return (
         <div className="py-20 w-full px-4">
             <motion.div
@@ -19,11 +22,18 @@ function Projects() {
                 </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                {projectsList.map((project, index) => (
-                    <ProjectCard key={project.id} {...project} index={index} />
-                ))}
-            </div>
+            {loadingProjects ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                    <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-slate-400">Loading custom project portfolio...</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                    {projects.map((project, index) => (
+                        <ProjectCard key={project.id || project.slug} {...project} index={index} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
