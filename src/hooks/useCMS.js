@@ -14,14 +14,18 @@ export function useCMS() {
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingArticles, setLoadingArticles] = useState(true);
 
-  // Fetch projects list (merged with static projectsList)
+  // Fetch projects list (merged with static projectsList + Vite compiled local data)
   useEffect(() => {
     const fetchProjects = async () => {
       setLoadingProjects(true);
       try {
-        // Fetch files list in data/projects
+        // 1. Scan and resolve all local JSON projects compiled at build time by Vite
+        const localModules = import.meta.glob('../../data/projects/*.json', { eager: true });
+        const localList = Object.values(localModules).map(module => module.default || module);
+
+        // 2. Fetch live CMS list from GitHub REST API
         const res = await fetch(`${API_BASE}/contents/data/projects?ref=${BRANCH}&nocache=${Date.now()}`);
-        if (!res.ok) throw new Error('CMS path not initialized yet');
+        if (!res.ok) throw new Error('CMS API rate limited or offline');
 
         const files = await res.json();
         const jsonFiles = files.filter(f => f.name.endsWith('.json'));
@@ -36,19 +40,41 @@ export function useCMS() {
         // Filter out drafts
         const publishedCMS = cmsProjects.filter(p => p.status !== 'draft');
 
-        // Merge and deduplicate by slug (CMS projects override hardcoded if slugs match)
+        // Merge: Dynamic CMS fetches override/extend local build-time modules
         const merged = [...publishedCMS];
+        localList.forEach(localProj => {
+          if (!merged.some(p => p.slug === localProj.slug)) {
+            merged.push(localProj);
+          }
+        });
+
+        // Dedup & static fallback
         projectsList.forEach(staticProj => {
           if (!merged.some(p => p.slug === staticProj.slug)) {
             merged.push({ ...staticProj, status: 'published' });
           }
         });
 
-        setProjects(merged);
+        setProjects(merged.filter(p => p.status !== 'draft'));
       } catch (err) {
-        console.warn('CMS Fetch Notice:', err.message);
-        // Fallback to static list if CMS folder doesn't exist yet
-        setProjects(projectsList.map(p => ({ ...p, status: 'published' })));
+        console.warn('Projects CMS Hybrid Fetch Notice:', err.message);
+        
+        // Fail-safe: Fall back entirely to local Vite compiled list + static fallback
+        try {
+          const localModules = import.meta.glob('../../data/projects/*.json', { eager: true });
+          const localList = Object.values(localModules).map(module => module.default || module);
+          
+          const merged = [...localList];
+          projectsList.forEach(staticProj => {
+            if (!merged.some(p => p.slug === staticProj.slug)) {
+              merged.push({ ...staticProj, status: 'published' });
+            }
+          });
+
+          setProjects(merged.filter(p => p.status !== 'draft'));
+        } catch (innerErr) {
+          setProjects(projectsList.map(p => ({ ...p, status: 'published' })));
+        }
       } finally {
         setLoadingProjects(false);
       }
@@ -57,13 +83,18 @@ export function useCMS() {
     fetchProjects();
   }, []);
 
-  // Fetch articles list from GitHub CMS
+  // Fetch articles list (merged with Vite compiled local data)
   useEffect(() => {
     const fetchArticles = async () => {
       setLoadingArticles(true);
       try {
+        // 1. Scan and resolve all local JSON articles compiled at build time by Vite
+        const localModules = import.meta.glob('../../data/articles/*.json', { eager: true });
+        const localList = Object.values(localModules).map(module => module.default || module);
+
+        // 2. Fetch live CMS list from GitHub REST API
         const res = await fetch(`${API_BASE}/contents/data/articles?ref=${BRANCH}&nocache=${Date.now()}`);
-        if (!res.ok) throw new Error('CMS path not initialized yet');
+        if (!res.ok) throw new Error('CMS API rate limited or offline');
 
         const files = await res.json();
         const jsonFiles = files.filter(f => f.name.endsWith('.json'));
@@ -76,15 +107,35 @@ export function useCMS() {
         );
 
         // Filter out drafts
-        const publishedArticles = cmsArticles.filter(a => a.status !== 'draft');
-        
-        // Sort by publish date (newest first)
-        publishedArticles.sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
+        const publishedCMS = cmsArticles.filter(a => a.status !== 'draft');
 
-        setArticles(publishedArticles);
+        // Merge: Dynamic CMS fetches override/extend local build-time modules
+        const merged = [...publishedCMS];
+        localList.forEach(localArt => {
+          if (!merged.some(a => a.slug === localArt.slug)) {
+            merged.push(localArt);
+          }
+        });
+
+        // Sort by publish date (newest first)
+        const activeArticles = merged.filter(a => a.status !== 'draft');
+        activeArticles.sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
+
+        setArticles(activeArticles);
       } catch (err) {
-        console.warn('Articles Fetch Notice:', err.message);
-        setArticles([]);
+        console.warn('Articles CMS Hybrid Fetch Notice:', err.message);
+        
+        // Fail-safe: Fall back entirely to local Vite compiled list
+        try {
+          const localModules = import.meta.glob('../../data/articles/*.json', { eager: true });
+          const localList = Object.values(localModules).map(module => module.default || module);
+          
+          const activeArticles = localList.filter(a => a.status !== 'draft');
+          activeArticles.sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
+          setArticles(activeArticles);
+        } catch (innerErr) {
+          setArticles([]);
+        }
       } finally {
         setLoadingArticles(false);
       }
@@ -103,7 +154,17 @@ export async function fetchCMSContent(slug, type = 'projects') {
     if (!response.ok) throw new Error('Not found in CMS');
     return await response.text();
   } catch (err) {
-    // If not found in CMS and it is a project, try fetching from the local public path
+    // Secondary fallback: check local workspace via Vite dev server
+    try {
+      const localResponse = await fetch(`/data/${type}/${slug}.md`);
+      if (localResponse.ok) {
+        return await localResponse.text();
+      }
+    } catch (innerErr) {
+      console.warn('Local dev file fetch failed:', innerErr);
+    }
+    
+    // Legacy public folder path backup
     if (type === 'projects') {
       const fallbackResponse = await fetch(`/projects/${slug}.md`);
       if (fallbackResponse.ok) {
