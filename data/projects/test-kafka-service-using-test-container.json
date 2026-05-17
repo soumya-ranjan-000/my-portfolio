@@ -1,0 +1,18 @@
+{
+  "id": "test-kafka-service-using-test-container",
+  "slug": "test-kafka-service-using-test-container",
+  "title": "Test Kafka Service Using Test Container",
+  "description": "The system consists of a Java Spring Boot Producer that publishes order events and a Python Async Consumer that processes these events, updates stock in MongoDB, and handles errors via a Dead Letter Queue (DLQ).",
+  "image": "https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/projects/1779045942499-KafkaTesting.png",
+  "github": "https://github.com/soumya-ranjan-000/TestKafkaEventStreamingService",
+  "demo": "",
+  "status": "published",
+  "tags": [
+    "java",
+    "docker",
+    "test-container",
+    "testng",
+    "rest-assured"
+  ],
+  "updatedAt": "2026-05-17T19:30:29.538Z"
+}
