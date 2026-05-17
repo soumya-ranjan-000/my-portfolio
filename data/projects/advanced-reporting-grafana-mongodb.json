@@ -1,0 +1,12 @@
+{
+  "id": "Andvance Reporting with grafana & mongodb",
+  "slug": "advanced-reporting-grafana-mongodb",
+  "title": "Advanced Reporting using Grafana & MongoDB",
+  "description": "Create advanced reports using Grafana and MongoDB for data visualization.",
+  "image": "https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/projects/grafana_mongo.png",
+  "github": "https://github.com/soumya-ranjan-000/AdvancedReportingGrafanaMongo",
+  "demo": "",
+  "status": "published",
+  "tags": ["grafana", "mongodb", "reporting", "docker", "influxdb"],
+  "updatedAt": "2026-05-18T02:55:00.000Z"
+}
