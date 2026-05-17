@@ -140,6 +140,9 @@ Ensure that if a message is delivered multiple times (due to Kafka retries, netw
 ### Expected Behavior
 Only one record exists in MongoDB; product stock is only decremented once.
 
+
+![image.png](https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/projects/1779051610898-image.png)
+
 ---
 
 ## TC-003: Error Handling - Malformed JSON Payload
@@ -159,6 +162,8 @@ Verify the system's "Fail-Fast" and "Isolate" behavior when encountering unparse
 
 ### Expected Behavior
 Invalid data is safely quarantined to the Dead Letter Queue (DLQ) for manual inspection, and the main pipeline continues processing valid subsequent messages seamlessly.
+
+![image.png](https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/projects/1779051779350-image.png)
 
 ---
 
@@ -180,6 +185,8 @@ Verify that the consumer safely retries database operations during transient DB 
 
 ### Expected Behavior
 No data loss occurs during database downtime; processing resumes automatically upon reconnection.
+
+![image.png](https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/projects/1779051842526-image.png)
 
 ---
 
