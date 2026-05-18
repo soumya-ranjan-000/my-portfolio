@@ -46,6 +46,8 @@ graph TD
 
 ---
 
+[Kafka Project](https://youtu.be/DzuJFJgTjEw?list=PLBENKhsOQvhvYH52LBzniQuzvoWn9bgJx)
+
 ## 🚀 Setup & Getting Started
 
 ### Prerequisites
@@ -84,6 +86,7 @@ Upon test completion, an interactive HTML report will be generated. You can find
 
 ```
 
+
 Based on the test documentation in the repository, here is the clean, structured Markdown content for your test cases. You can copy this directly into your `.md` files (such as `TC-001.md` through `TC-006.md` or a unified `TEST_CASES.md`).
 
 ---
@@ -116,6 +119,7 @@ The entire end-to-end flow completes within **< 2 seconds**, maintaining strict 
 
 ![kafka-e2e.png](https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/projects/1779046144149-kafka_e2e.png)
 
+[Watch Video](https://youtu.be/zIr0G9Mnrfk?list=PLBENKhsOQvhvYH52LBzniQuzvoWn9bgJx)
 ---
 
 ## TC-002: Consumer Idempotency (Duplicate Message Handling)
@@ -183,6 +187,7 @@ No data loss occurs during database downtime; processing resumes automatically u
 
 ![image.png](https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/projects/1779051842526-image.png)
 
+[Watch Video](https://youtu.be/IR7kDRztCx0?list=PLBENKhsOQvhvYH52LBzniQuzvoWn9bgJx)
 ---
 
 ## TC-005: Producer Validation - Invalid Requests
