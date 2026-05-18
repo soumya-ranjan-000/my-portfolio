@@ -221,3 +221,8 @@ Verify that multiple consumer instances within the same consumer group correctly
 
 ### Expected Behavior
 Throughput scales linearly with the number of partitions and consumers, validating effective horizontal scaling.
+
+# Projects Links
+1. [Test Framework](https://github.com/soumya-ranjan-000/TestKafkaEventStreamingService)
+2. [Kafka Service Demo Application](https://github.com/soumya-ranjan-000/Kafka_Event_Streaming_System)
+3. [Docker Hub Images](https://hub.docker.com/repositories/soumyaranjan6877)
