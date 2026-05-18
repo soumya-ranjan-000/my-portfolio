@@ -3,7 +3,7 @@
   "slug": "a-developer-s-guide-to-retrieval-augmented-generation-rag",
   "title": "A Developer’s Guide to Retrieval-Augmented Generation (RAG)",
   "excerpt": "",
-  "coverImage": "",
+  "coverImage": "https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/articles/1779112047664-rag_architecture.png",
   "status": "published",
   "tags": [
     "rag",
@@ -13,5 +13,5 @@
   ],
   "readTime": "4 min read",
   "publishDate": "2026-05-17T00:00:00.000Z",
-  "updatedAt": "2026-05-17T22:00:09.855Z"
+  "updatedAt": "2026-05-18T13:47:43.292Z"
 }
