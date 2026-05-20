@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { FaCalendarAlt, FaClock, FaArrowLeft, FaSpinner, FaEye, FaTag } from 'react-icons/fa';
 import CodeBlock from '../components/CodeBlock';
+import NotebookEmbeds from '../components/NotebookEmbeds';
 
 const markdownComponents = {
   h1: ({ node, ...props }) => (
@@ -261,6 +262,7 @@ export default function Articles() {
                 <ReactMarkdown components={markdownComponents}>{articleContent}</ReactMarkdown>
               </div>
             )}
+            <NotebookEmbeds item={selectedArticle} accent="secondary" />
           </motion.article>
         )}
       </AnimatePresence>

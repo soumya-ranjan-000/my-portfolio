@@ -62,7 +62,7 @@ function Projects() {
                     Featured <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-secondary-400">Projects</span>
                 </h2>
                 <p className="text-slate-400 max-w-2xl mx-auto text-base md:text-lg leading-relaxed select-none">
-                    A highly detailed showcase of BDD frameworks, self-healing automation architectures, real-time analytics dashboards, and modern microservices testing pipelines.
+                    A curated showcase of enterprise-grade testing frameworks, AI-powered automation architectures, real-time analytics dashboards, and event-driven microservices validation pipelines — each built to solve real-world QA challenges at scale.
                 </p>
             </motion.div>
 

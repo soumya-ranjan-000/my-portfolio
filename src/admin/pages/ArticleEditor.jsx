@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import MarkdownEditor from '../components/MarkdownEditor';
+import NotebookFields from '../components/NotebookFields';
 import { useGitHubAuth } from '../../hooks/useGitHubAuth';
 import { storageManager } from '../services/storageManager';
 import { FaSave, FaTrash, FaSpinner, FaFileAlt, FaArrowLeft, FaImage } from 'react-icons/fa';
@@ -35,6 +36,7 @@ export default function ArticleEditor() {
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
   const [publishDate, setPublishDate] = useState(new Date().toISOString().split('T')[0]);
+  const [notebooks, setNotebooks] = useState([]);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function ArticleEditor() {
             setStatus(data.status || 'published');
             setTags(data.tags ? data.tags.join(', ') : '');
             setPublishDate(data.publishDate ? data.publishDate.split('T')[0] : new Date().toISOString().split('T')[0]);
+            setNotebooks(Array.isArray(data.notebooks) ? data.notebooks : []);
             setIsEdit(true);
           }
 
@@ -139,6 +142,15 @@ export default function ArticleEditor() {
         coverImage,
         status,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        notebooks: notebooks
+          .map(notebook => ({
+            ...notebook,
+            title: notebook.title?.trim() || 'Interactive Notebook',
+            embedUrl: notebook.embedUrl?.trim() || '',
+            sourceUrl: notebook.sourceUrl?.trim() || '',
+            description: notebook.description?.trim() || ''
+          }))
+          .filter(notebook => notebook.embedUrl || notebook.sourceUrl),
         readTime: calculateReadTime(content),
         publishDate: new Date(publishDate).toISOString(),
         updatedAt: new Date().toISOString()
@@ -323,6 +335,8 @@ export default function ArticleEditor() {
                   cms={cms}
                 />
               </div>
+
+              <NotebookFields notebooks={notebooks} onChange={setNotebooks} accent="secondary" />
             </div>
 
             {/* Actions Submit */}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import MarkdownEditor from '../components/MarkdownEditor';
+import NotebookFields from '../components/NotebookFields';
 import { useGitHubAuth } from '../../hooks/useGitHubAuth';
 import { storageManager } from '../services/storageManager';
 import { FaSave, FaTrash, FaSpinner, FaFolderOpen, FaArrowLeft, FaImage } from 'react-icons/fa';
@@ -36,6 +37,7 @@ export default function ProjectEditor() {
   const [status, setStatus] = useState('published'); // 'published' or 'draft'
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
+  const [notebooks, setNotebooks] = useState([]);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -66,6 +68,7 @@ export default function ProjectEditor() {
             setDemo(data.demo || '');
             setStatus(data.status || 'published');
             setTags(data.tags ? data.tags.join(', ') : '');
+            setNotebooks(Array.isArray(data.notebooks) ? data.notebooks : []);
             setIsEdit(true);
           }
 
@@ -134,6 +137,15 @@ export default function ProjectEditor() {
         demo,
         status,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        notebooks: notebooks
+          .map(notebook => ({
+            ...notebook,
+            title: notebook.title?.trim() || 'Interactive Notebook',
+            embedUrl: notebook.embedUrl?.trim() || '',
+            sourceUrl: notebook.sourceUrl?.trim() || '',
+            description: notebook.description?.trim() || ''
+          }))
+          .filter(notebook => notebook.embedUrl || notebook.sourceUrl),
         updatedAt: new Date().toISOString()
       };
 
@@ -330,6 +342,8 @@ export default function ProjectEditor() {
                   cms={cms}
                 />
               </div>
+
+              <NotebookFields notebooks={notebooks} onChange={setNotebooks} accent="primary" />
             </div>
 
             {/* Actions Submit */}

@@ -5,6 +5,7 @@ import { projectsList } from "../data/projects";
 import { motion } from 'framer-motion';
 import { FaGithub, FaTimes, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
 import CodeBlock from '../components/CodeBlock';
+import NotebookEmbeds from '../components/NotebookEmbeds';
 
 import { useCMS, fetchCMSContent } from '../hooks/useCMS';
 
@@ -249,6 +250,8 @@ function ProjectDetail() {
           <div className="prose prose-invert prose-lg max-w-none">
             <ReactMarkdown components={markdownComponents}>{content}</ReactMarkdown>
           </div>
+
+          <NotebookEmbeds item={project} accent="primary" />
 
           {project.video && (
             <div className="mt-10">
