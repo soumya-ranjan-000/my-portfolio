@@ -6,52 +6,43 @@ import { motion } from 'framer-motion';
 import { FaGithub, FaTimes, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
 import CodeBlock from '../components/CodeBlock';
 
-import { fetchCMSContent } from '../hooks/useCMS';
-
-const OWNER = import.meta.env.VITE_GITHUB_REPO_OWNER;
-const REPO = import.meta.env.VITE_GITHUB_REPO_NAME;
-const BRANCH = import.meta.env.VITE_GITHUB_REPO_BRANCH || 'main';
+import { useCMS, fetchCMSContent } from '../hooks/useCMS';
 
 function ProjectDetail() {
   const { slug } = useParams();
+  const { projects, loadingProjects } = useCMS();
   const [project, setProject] = useState(null);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProjectData = async () => {
+      if (loadingProjects) return;
+      
       setLoading(true);
       try {
-        // 1. Try static list first
-        const staticMatch = projectsList.find(p => p.slug === slug);
-        if (staticMatch) {
-          setProject(staticMatch);
-          const text = await fetchCMSContent(slug, 'projects');
-          setContent(text);
-          setLoading(false);
-          return;
+        // Find matching project from merged projects list (local + dynamic target stores)
+        const foundProject = projects.find(p => p.slug === slug);
+        if (!foundProject) {
+          throw new Error('Project not found in CMS or static data');
         }
 
-        // 2. Fetch from CMS (JSON metadata + MD body)
-        const metadataUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/data/projects/${slug}.json?t=${Date.now()}`;
-        const metaRes = await fetch(metadataUrl);
-        if (!metaRes.ok) throw new Error('Project not found in CMS');
+        setProject(foundProject);
 
-        const metaData = await metaRes.json();
-        setProject(metaData);
-
-        const text = await fetchCMSContent(slug, 'projects');
+        // Fetch markdown content using the specific storage target ID
+        const text = await fetchCMSContent(slug, 'projects', foundProject.storageTargetId);
         setContent(text);
       } catch (err) {
         console.error("Error fetching dynamic project:", err);
         setContent("Could not load project details.");
+        setProject(null);
       } finally {
         setLoading(false);
       }
     };
 
-    if (slug) loadProjectData();
-  }, [slug]);
+    loadProjectData();
+  }, [slug, projects, loadingProjects]);
 
   // Zoom / Popup Logic
   const [popupImg, setPopupImg] = useState(null);
@@ -99,7 +90,7 @@ function ProjectDetail() {
     if (!popupImg) setDrag({ isDragging: false, startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
   }, [popupImg]);
 
-  if (loading) {
+  if (loadingProjects || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-900 text-slate-200">
         <div className="flex flex-col items-center gap-4">
