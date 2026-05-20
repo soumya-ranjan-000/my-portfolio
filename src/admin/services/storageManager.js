@@ -9,6 +9,7 @@ const CDN_CONFIG_KEY = 'portfolio_cms_cdn_config';
 const GITHUB_OWNER = import.meta.env.VITE_GITHUB_REPO_OWNER || '';
 const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO_NAME || '';
 const GITHUB_BRANCH = import.meta.env.VITE_GITHUB_REPO_BRANCH || 'main';
+const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN || import.meta.env.VITE_GITHUB_PERSONAL_TOKEN || '';
 
 // Helper to initialize default targets
 function initDefaultTargets() {
@@ -16,7 +17,15 @@ function initDefaultTargets() {
   if (existing) {
     try {
       const parsed = JSON.parse(existing);
-      if (parsed.length > 0) return parsed;
+      if (parsed.length > 0) {
+        // If default target token is empty but GITHUB_TOKEN is set, merge it
+        const defaultTarget = parsed.find(t => t.id === 'default-github');
+        if (defaultTarget && defaultTarget.config && !defaultTarget.config.token && GITHUB_TOKEN) {
+          defaultTarget.config.token = GITHUB_TOKEN;
+          localStorage.setItem(TARGETS_KEY, JSON.stringify(parsed));
+        }
+        return parsed;
+      }
     } catch (e) {
       console.error('Failed to parse storage targets', e);
     }
@@ -32,7 +41,7 @@ function initDefaultTargets() {
       repo: GITHUB_REPO,
       branch: GITHUB_BRANCH,
       folderPath: 'data',
-      token: '' // Will use githubAuth hook token dynamically if empty
+      token: GITHUB_TOKEN || '' // Will use githubAuth hook token dynamically if empty
     },
     isWriteActive: true,
     isReadActive: true,
@@ -113,21 +122,28 @@ seedSandboxMockData();
 
 export const storageManager = {
   getCDNConfig() {
+    let config = {
+      owner: import.meta.env.VITE_CDN_OWNER || GITHUB_OWNER || '',
+      repo: import.meta.env.VITE_CDN_REPO || (GITHUB_REPO ? `${GITHUB_REPO}-cdn` : 'portfolio-cdn'),
+      branch: import.meta.env.VITE_CDN_BRANCH || 'main',
+      token: import.meta.env.VITE_CDN_TOKEN || GITHUB_TOKEN || ''
+    };
+
     const existing = localStorage.getItem(CDN_CONFIG_KEY);
     if (existing) {
       try {
-        return JSON.parse(existing);
+        const parsed = JSON.parse(existing);
+        config = {
+          owner: parsed.owner || config.owner,
+          repo: parsed.repo || config.repo,
+          branch: parsed.branch || config.branch,
+          token: parsed.token || config.token
+        };
       } catch (e) {
         console.error('Failed to parse CDN config', e);
       }
     }
-    // Default fallback CDN config from env variables
-    return {
-      owner: GITHUB_OWNER,
-      repo: GITHUB_REPO ? `${GITHUB_REPO}-cdn` : 'portfolio-cdn',
-      branch: 'main',
-      token: ''
-    };
+    return config;
   },
 
   saveCDNConfig(config) {
@@ -538,6 +554,12 @@ export const storageManager = {
     const type = target.type;
     const config = target.config;
     let token = type === 'github' ? (githubTokenOverride || config.token) : config.token;
+
+    // Fall back to environment variable token if no token is stored/passed
+    const envToken = import.meta.env.VITE_GITHUB_TOKEN || import.meta.env.VITE_GITHUB_PERSONAL_TOKEN || '';
+    if (type === 'github' && (!token || token === 'sandbox') && envToken) {
+      token = envToken;
+    }
 
     // Determine if we have a fully configured GitHub target (has owner and repo)
     const isGithubConfigured = type === 'github' && (config.owner || GITHUB_OWNER) && (config.repo || GITHUB_REPO);

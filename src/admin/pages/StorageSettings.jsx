@@ -421,7 +421,7 @@ export default function StorageSettings() {
                         type="password"
                         value={githubToken}
                         onChange={(e) => setGithubToken(e.target.value)}
-                        placeholder="Leave blank to use active session..."
+                        placeholder={import.meta.env.VITE_GITHUB_TOKEN || import.meta.env.VITE_GITHUB_PERSONAL_TOKEN ? "Configured via env variable" : "Leave blank to use active session..."}
                         className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary-500 transition text-sm"
                       />
                     </div>
@@ -529,7 +529,7 @@ export default function StorageSettings() {
                       type="password"
                       value={cdnToken}
                       onChange={(e) => setCdnToken(e.target.value)}
-                      placeholder="Enter token with write access (or 'sandbox')"
+                      placeholder={import.meta.env.VITE_CDN_TOKEN || import.meta.env.VITE_GITHUB_TOKEN ? "Configured via env variable" : "Enter token with write access (or 'sandbox')"}
                       className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary-500 transition text-sm"
                     />
                   </div>
