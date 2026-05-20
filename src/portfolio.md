@@ -2,7 +2,7 @@
 id: portfolio
 title: React Portfolio Website
 image: /images/project1.jpg
-github: https://github.com/soumya-ranjan-000/my-portfolio
+github: https://github.com/soumya-ranjan-000/my-portfolio-projects
 video: https://www.youtube.com/embed/dQw4w9WgXcQ
 ---
 

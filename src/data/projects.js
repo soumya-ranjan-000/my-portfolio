@@ -35,7 +35,7 @@ export const projectsList = [
     id: "test-kafka-service-using-test-container",
     slug: "test-kafka-service-using-test-container",
     title: "Test Kafka Service Using Test Container",
-    image: "https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio/main/public/images/projects/1779045942499-KafkaTesting.png",
+    image: "https://raw.githubusercontent.com/soumya-ranjan-000/my-portfolio-projects/main/public/images/projects/1779045942499-KafkaTesting.png",
     description: "The system consists of a Java Spring Boot Producer that publishes order events and a Python Async Consumer that processes these events, updates stock in MongoDB, and handles errors via a Dead Letter Queue (DLQ).",
     tags: ["java", "docker", "test-container", "testng", "rest-assured"]
   }
