@@ -164,6 +164,9 @@ export default function ArticleEditor() {
       
       // 2. Save full markdown details
       await cms.upsertFile(mdPath, content, `CMS: Update details for article ${slug}`);
+      if (cms.syncDirectoryIndex) {
+        await cms.syncDirectoryIndex('data/articles');
+      }
 
       toast.success('Article saved successfully!');
       setTimeout(() => navigate('/admin'), 1500);

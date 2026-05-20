@@ -678,6 +678,41 @@ export const storageManager = {
         ? new Octokit({ auth: token })
         : new Octokit();
 
+      function directoryIndexPath(path) {
+        return `${path.replace(/\/$/, '')}/index.json`;
+      }
+
+      function normalizeDirectoryIndex(indexContent, path) {
+        let parsed = [];
+        try {
+          parsed = JSON.parse(indexContent);
+        } catch {
+          return [];
+        }
+
+        if (!Array.isArray(parsed)) return [];
+
+        return parsed
+          .map(item => {
+            if (typeof item === 'string') {
+              const name = item.split('/').pop();
+              return { name, path: item.startsWith(path) ? item : `${path}/${name}`, type: 'file' };
+            }
+            if (item && typeof item === 'object') {
+              const name = item.name || item.path?.split('/').pop();
+              if (!name) return null;
+              return {
+                name,
+                path: item.path || `${path}/${name}`,
+                type: item.type || 'file'
+              };
+            }
+            return null;
+          })
+          .filter(Boolean)
+          .filter(file => file.name !== 'index.json');
+      }
+
       async function getFile(path) {
         // Optimization: For read operations where there is no admin token (e.g. public visitors),
         // fetch files directly from raw.githubusercontent.com to bypass GitHub API rate limits.
@@ -694,8 +729,10 @@ export const storageManager = {
               };
             }
           } catch (e) {
-            console.warn(`[StorageManager] Failed to fetch raw file via CDN: ${path}, falling back to API:`, e);
+            console.warn(`[StorageManager] Failed to fetch raw file via CDN: ${path}`, e);
           }
+
+          return null;
         }
 
         try {
@@ -711,19 +748,70 @@ export const storageManager = {
         }
       }
 
+      async function upsertFile(path, content, message) {
+        const existing = await getFile(path);
+        const params = {
+          owner, repo, path,
+          message,
+          content: btoa(unescape(encodeURIComponent(content))),
+          branch,
+        };
+        if (existing) params.sha = existing.sha;
+        return octokit.repos.createOrUpdateFileContents(params);
+      }
+
+      async function listFiles(path) {
+        if (!token || token === 'sandbox') {
+          const indexPath = directoryIndexPath(path);
+          try {
+            const rawUrl = `${rawBase}/${indexPath}?t=${Date.now()}`;
+            const res = await fetch(rawUrl);
+            if (res.ok) {
+              return normalizeDirectoryIndex(await res.text(), path);
+            }
+          } catch (e) {
+            console.warn(`[StorageManager] Failed to fetch directory index: ${indexPath}`, e);
+          }
+
+          return [];
+        }
+
+        try {
+          const { data } = await octokit.repos.getContent({ owner, repo, path, ref: branch });
+          return Array.isArray(data) ? data.filter(file => file.name !== 'index.json') : [];
+        } catch { return []; }
+      }
+
+      async function syncDirectoryIndex(path) {
+        if (!token || token === 'sandbox') return;
+
+        const files = await listFiles(path);
+        const index = files
+          .filter(file => file.type === 'file')
+          .filter(file => file.name.endsWith('.json') || file.name.endsWith('.md'))
+          .filter(file => file.name !== 'index.json')
+          .map(file => ({
+            name: file.name,
+            path: file.path,
+            type: 'file'
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        const nextContent = JSON.stringify(index, null, 2);
+        const existing = await getFile(directoryIndexPath(path));
+        if (existing?.content === nextContent) return;
+
+        await upsertFile(
+          directoryIndexPath(path),
+          nextContent,
+          `Update public content index for ${path}`
+        );
+      }
+
       return {
         getFile,
-        async upsertFile(path, content, message) {
-          const existing = await getFile(path);
-          const params = {
-            owner, repo, path,
-            message,
-            content: btoa(unescape(encodeURIComponent(content))),
-            branch,
-          };
-          if (existing) params.sha = existing.sha;
-          return octokit.repos.createOrUpdateFileContents(params);
-        },
+        upsertFile,
+        syncDirectoryIndex,
 
         async deleteFile(path, message) {
           const existing = await getFile(path);
@@ -734,12 +822,7 @@ export const storageManager = {
           });
         },
 
-        async listFiles(path) {
-          try {
-            const { data } = await octokit.repos.getContent({ owner, repo, path, ref: branch });
-            return Array.isArray(data) ? data : [];
-          } catch { return []; }
-        },
+        listFiles,
 
         async uploadImage(repoPath, base64Content, message) {
           const existing = await getFile(repoPath);

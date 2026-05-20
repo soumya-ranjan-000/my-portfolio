@@ -117,6 +117,22 @@ export default function AdminDashboard() {
 
       setProjects(loadedProjects);
       setArticles(loadedArticles);
+
+      await Promise.all(
+        readTargets
+          .filter(target => target.type === 'github')
+          .map(async (target) => {
+            try {
+              const cms = storageManager.getStorageCMS(target, token);
+              if (cms.syncDirectoryIndex) {
+                await cms.syncDirectoryIndex('data/projects');
+                await cms.syncDirectoryIndex('data/articles');
+              }
+            } catch (err) {
+              console.warn(`Failed to refresh public indexes for ${target.name}`, err);
+            }
+          })
+      );
     } catch (err) {
       console.error('Failed to load portfolio items:', err);
       toast.error('Failed to load assets from storage targets');
@@ -145,6 +161,9 @@ export default function AdminDashboard() {
       
       await targetCms.deleteFile(jsonPath, `Delete ${type} config: ${slug}`);
       await targetCms.deleteFile(mdPath, `Delete ${type} details: ${slug}`);
+      if (targetCms.syncDirectoryIndex) {
+        await targetCms.syncDirectoryIndex(`data/${type}s`);
+      }
       
       toast.success(`${type} deleted successfully!`);
       fetchData();

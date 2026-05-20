@@ -157,6 +157,9 @@ export default function ProjectEditor() {
       
       // 2. Save full markdown details
       await cms.upsertFile(mdPath, content, `CMS: Update details for project ${slug}`);
+      if (cms.syncDirectoryIndex) {
+        await cms.syncDirectoryIndex('data/projects');
+      }
 
       toast.success('Project saved successfully!');
       setTimeout(() => navigate('/admin'), 1500);
