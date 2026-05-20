@@ -15,6 +15,7 @@ import OAuthCallback from './admin/pages/OAuthCallback';
 import AdminDashboard from './admin/pages/AdminDashboard';
 import ProjectEditor from './admin/pages/ProjectEditor';
 import ArticleEditor from './admin/pages/ArticleEditor';
+import StorageSettings from './admin/pages/StorageSettings';
 
 // Hidden Keyboard Shortcut Handler
 function AdminShortcutListener() {
@@ -41,12 +42,24 @@ function MainContentLayout() {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
 
+  useEffect(() => {
+    if (isAdminPath) {
+      document.documentElement.classList.add('admin-theme');
+    } else {
+      document.documentElement.classList.remove('admin-theme');
+    }
+    return () => {
+      document.documentElement.classList.remove('admin-theme');
+    };
+  }, [isAdminPath]);
+
   if (isAdminPath) {
     return (
       <main className="flex-grow w-full min-h-screen z-10 relative">
         <Routes>
           <Route path="/admin/callback" element={<OAuthCallback />} />
           <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/storage" element={<ProtectedRoute><StorageSettings /></ProtectedRoute>} />
           <Route path="/admin/projects/new" element={<ProtectedRoute><ProjectEditor /></ProtectedRoute>} />
           <Route path="/admin/projects/:slug" element={<ProtectedRoute><ProjectEditor /></ProtectedRoute>} />
           <Route path="/admin/articles/new" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />

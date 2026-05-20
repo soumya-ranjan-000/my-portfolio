@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaFolderOpen, FaFileAlt, FaSignOutAlt, FaHome, FaArrowLeft } from 'react-icons/fa';
+import { FaFolderOpen, FaFileAlt, FaSignOutAlt, FaHome, FaArrowLeft, FaCloud } from 'react-icons/fa';
 import { useGitHubAuth } from '../../hooks/useGitHubAuth';
 
 export default function Sidebar() {
@@ -11,6 +11,7 @@ export default function Sidebar() {
     { name: 'Dashboard', path: '/admin', icon: <FaHome size={18} />, end: true },
     { name: 'Projects', path: '/admin/projects/new', icon: <FaFolderOpen size={18} /> },
     { name: 'Articles', path: '/admin/articles/new', icon: <FaFileAlt size={18} /> },
+    { name: 'Storage Targets', path: '/admin/storage', icon: <FaCloud size={18} /> },
   ];
 
   return (

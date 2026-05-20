@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import MarkdownEditor from '../components/MarkdownEditor';
 import { useGitHubAuth } from '../../hooks/useGitHubAuth';
-import { createGitHubCMS } from '../services/githubCMS';
+import { storageManager } from '../services/storageManager';
 import { FaSave, FaTrash, FaSpinner, FaFileAlt, FaArrowLeft, FaImage } from 'react-icons/fa';
 import toast, { Toaster } from 'react-hot-toast';
 import { useDropzone } from 'react-dropzone';
@@ -11,8 +11,16 @@ import { useDropzone } from 'react-dropzone';
 export default function ArticleEditor() {
   const { slug: routeSlug } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetId = searchParams.get('target');
   const { token } = useGitHubAuth();
-  const cms = createGitHubCMS(token);
+
+  // Resolve storage target: if editing and target query param exists, use it. Otherwise, use active write target.
+  const activeTarget = targetId 
+    ? (storageManager.getTargets().find(t => t.id === targetId) || storageManager.getActiveWriteTarget())
+    : storageManager.getActiveWriteTarget();
+
+  const cms = storageManager.getStorageCMS(activeTarget, token);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -74,21 +82,21 @@ export default function ArticleEditor() {
   }, [routeSlug, token]);
 
   // Upload primary article cover image
+  // Upload primary article cover image
   const onImageDrop = async (files) => {
     if (files.length === 0) return;
     const file = files[0];
     const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-    const repoPath = `public/images/articles/${filename}`;
 
-    const loadingToast = toast.loading('Uploading cover image to GitHub...');
+    const loadingToast = toast.loading(`Uploading cover image to Public CDN...`);
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
-        const rawUrl = await cms.uploadImage(repoPath, base64, `Upload article cover: ${filename}`);
+        const rawUrl = await storageManager.uploadMediaToCDN('articles', slug || 'temp', filename, base64, token);
         setCoverImage(rawUrl);
-        toast.success('Cover image uploaded successfully!');
+        toast.success('Cover image uploaded to Public CDN successfully!');
       };
     } catch (err) {
       console.error(err);
@@ -120,7 +128,7 @@ export default function ArticleEditor() {
     }
 
     setSaving(true);
-    const loadingToast = toast.loading('Saving article to GitHub...');
+    const loadingToast = toast.loading(`Saving article to ${activeTarget.name}...`);
 
     try {
       const articleData = {
@@ -149,7 +157,7 @@ export default function ArticleEditor() {
       setTimeout(() => navigate('/admin'), 1500);
     } catch (err) {
       console.error(err);
-      toast.error('Failed to commit files to GitHub');
+      toast.error(`Failed to save article to ${activeTarget.name}`);
     } finally {
       toast.dismiss(loadingToast);
       setSaving(false);
@@ -175,14 +183,14 @@ export default function ArticleEditor() {
               <FaFileAlt className="text-secondary-400" size={24} />
               {isEdit ? `Edit Article: ${title}` : 'Create New Article'}
             </h1>
-            <p className="text-slate-400 text-sm">Draft a new deep-dive tutorial or blog post saved straight to your GitHub repository.</p>
+            <p className="text-slate-400 text-sm">Draft a new deep-dive tutorial or blog post saved straight to your storage target: {activeTarget.name}.</p>
           </div>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-slate-400 font-medium">Fetching article from branch...</p>
+            <p className="text-slate-400 font-medium">Fetching article from storage target...</p>
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-6">
@@ -306,7 +314,14 @@ export default function ArticleEditor() {
               {/* Rich Markdown Details */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-300">Article Markdown Body</label>
-                <MarkdownEditor value={content} onChange={setContent} cms={cms} />
+                <MarkdownEditor 
+                  value={content} 
+                  onChange={setContent} 
+                  editorType="article"
+                  editorSlug={slug}
+                  githubToken={token}
+                  cms={cms}
+                />
               </div>
             </div>
 

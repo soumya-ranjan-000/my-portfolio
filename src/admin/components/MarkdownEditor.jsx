@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 import { useDropzone } from 'react-dropzone';
 import CodeBlock from '../../components/CodeBlock';
+import { storageManager } from '../services/storageManager';
 
 const markdownComponents = {
   h1: ({ node, ...props }) => (
@@ -93,7 +94,17 @@ const markdownComponents = {
   }
 };
 
-export default function MarkdownEditor({ value, onChange, cms, isImageUploading, onImageUploadStart, onImageUploadEnd }) {
+export default function MarkdownEditor({ 
+  value, 
+  onChange, 
+  editorType = 'project', 
+  editorSlug = 'temp', 
+  githubToken = null, 
+  isImageUploading, 
+  onImageUploadStart, 
+  onImageUploadEnd,
+  cms = null
+}) {
   const [isPreview, setIsPreview] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -165,15 +176,13 @@ export default function MarkdownEditor({ value, onChange, cms, isImageUploading,
     }, 50);
   };
 
-  // Image & Video File Drop Upload to GitHub
+  // Image & Video File Drop Upload to Public CDN
   const onDrop = async (acceptedFiles) => {
-    if (!cms || acceptedFiles.length === 0) return;
+    if (acceptedFiles.length === 0) return;
     const file = acceptedFiles[0];
     
     const isVideo = file.type.startsWith('video/');
-    const folder = isVideo ? 'public/videos' : 'public/images/projects';
     const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-    const repoPath = `${folder}/${filename}`;
 
     setUploading(true);
     if (onImageUploadStart) onImageUploadStart();
@@ -183,7 +192,9 @@ export default function MarkdownEditor({ value, onChange, cms, isImageUploading,
       reader.readAsDataURL(file);
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
-        const rawUrl = await cms.uploadImage(repoPath, base64, `Upload media: ${filename}`);
+        
+        const type = editorType === 'article' ? 'articles' : 'projects';
+        const rawUrl = await storageManager.uploadMediaToCDN(type, editorSlug || 'temp', filename, base64, githubToken);
         
         if (isVideo) {
           insertMarkdown(`\n[Demo Video](${rawUrl})\n`);

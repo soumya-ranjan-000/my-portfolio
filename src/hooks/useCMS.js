@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { projectsList } from '../data/projects';
+import { storageManager } from '../admin/services/storageManager';
 
 const OWNER = import.meta.env.VITE_GITHUB_REPO_OWNER;
 const REPO = import.meta.env.VITE_GITHUB_REPO_NAME;
 const BRANCH = import.meta.env.VITE_GITHUB_REPO_BRANCH || 'main';
 
 const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
-const API_BASE = `https://api.github.com/repos/${OWNER}/${REPO}`;
 
 export function useCMS() {
   const [projects, setProjects] = useState([]);
@@ -14,163 +14,231 @@ export function useCMS() {
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingArticles, setLoadingArticles] = useState(true);
 
-  // Fetch projects list (merged with static projectsList + Vite compiled local data)
   useEffect(() => {
-    const fetchProjects = async () => {
+    let active = true;
+
+    const fetchAllData = async () => {
+      if (!active) return;
       setLoadingProjects(true);
+      setLoadingArticles(true);
+
       try {
         // 1. Scan and resolve all local JSON projects compiled at build time by Vite
-        const localModules = import.meta.glob('../../data/projects/*.json', { eager: true });
-        const localList = Object.values(localModules).map(module => module.default || module);
+        let localProjects = [];
+        let localArticles = [];
+        try {
+          const localProjModules = import.meta.glob('../../data/projects/*.json', { eager: true });
+          localProjects = Object.values(localProjModules).map(module => module.default || module);
+        } catch (e) {
+          console.warn('Local projects glob warning:', e);
+        }
 
-        // 2. Fetch live CMS list from GitHub REST API
-        const res = await fetch(`${API_BASE}/contents/data/projects?ref=${BRANCH}&nocache=${Date.now()}`);
-        if (!res.ok) throw new Error('CMS API rate limited or offline');
+        try {
+          const localArtModules = import.meta.glob('../../data/articles/*.json', { eager: true });
+          localArticles = Object.values(localArtModules).map(module => module.default || module);
+        } catch (e) {
+          console.warn('Local articles glob warning:', e);
+        }
 
-        const files = await res.json();
-        const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+        // 2. Fetch live data from ALL active read storage targets (preferring remote targets config if available)
+        let readTargets = [];
+        try {
+          const remoteTargets = await storageManager.fetchRemoteTargets();
+          if (remoteTargets && remoteTargets.length > 0) {
+            readTargets = remoteTargets.filter(t => t.isReadActive);
+          } else {
+            readTargets = storageManager.getAllReadTargets();
+          }
+        } catch (e) {
+          readTargets = storageManager.getAllReadTargets();
+        }
+        const cmsProjects = [];
+        const cmsArticles = [];
 
-        const cmsProjects = await Promise.all(
-          jsonFiles.map(async (file) => {
-            const rawRes = await fetch(`${RAW_BASE}/${file.path}?t=${Date.now()}`);
-            return rawRes.json();
+        await Promise.all(
+          readTargets.map(async (target) => {
+            try {
+              const cms = storageManager.getStorageCMS(target);
+              
+              // Load projects for this target
+              try {
+                const files = await cms.listFiles('data/projects');
+                const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+                const loadedProjects = await Promise.all(
+                  jsonFiles.map(async (file) => {
+                    try {
+                      const fileObj = await cms.getFile(file.path);
+                      if (!fileObj) return null;
+                      const parsed = JSON.parse(fileObj.content);
+                      return {
+                        ...parsed,
+                        storageSource: target.type,
+                        storageTargetId: target.id,
+                        storageTargetName: target.name
+                      };
+                    } catch (e) {
+                      return null;
+                    }
+                  })
+                );
+                cmsProjects.push(...loadedProjects.filter(Boolean));
+              } catch (e) {
+                console.warn(`Failed to list projects from target: ${target.name}`, e);
+              }
+
+              // Load articles for this target
+              try {
+                const files = await cms.listFiles('data/articles');
+                const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+                const loadedArticles = await Promise.all(
+                  jsonFiles.map(async (file) => {
+                    try {
+                      const fileObj = await cms.getFile(file.path);
+                      if (!fileObj) return null;
+                      const parsed = JSON.parse(fileObj.content);
+                      return {
+                        ...parsed,
+                        storageSource: target.type,
+                        storageTargetId: target.id,
+                        storageTargetName: target.name
+                      };
+                    } catch (e) {
+                      return null;
+                    }
+                  })
+                );
+                cmsArticles.push(...loadedArticles.filter(Boolean));
+              } catch (e) {
+                console.warn(`Failed to list articles from target: ${target.name}`, e);
+              }
+            } catch (err) {
+              console.error(`Failed loading target ${target.name}:`, err);
+            }
           })
         );
 
-        // Filter out drafts
-        const publishedCMS = cmsProjects.filter(p => p.status !== 'draft');
+        if (!active) return;
 
-        // Merge: Dynamic CMS fetches override/extend local build-time modules
-        const merged = [...publishedCMS];
-        localList.forEach(localProj => {
-          if (!merged.some(p => p.slug === localProj.slug)) {
-            merged.push(localProj);
+        // 3. Merge projects: dynamic CMS fetches override/extend local build-time modules
+        const mergedProjects = [...cmsProjects];
+        localProjects.forEach(localProj => {
+          if (!mergedProjects.some(p => p.slug === localProj.slug)) {
+            mergedProjects.push({ ...localProj, storageSource: 'local' });
           }
         });
 
         // Dedup & static fallback
         projectsList.forEach(staticProj => {
-          if (!merged.some(p => p.slug === staticProj.slug)) {
-            merged.push({ ...staticProj, status: 'published' });
+          if (!mergedProjects.some(p => p.slug === staticProj.slug)) {
+            mergedProjects.push({ ...staticProj, status: 'published', storageSource: 'static' });
           }
         });
 
-        setProjects(merged.filter(p => p.status !== 'draft'));
-      } catch (err) {
-        console.warn('Projects CMS Hybrid Fetch Notice:', err.message);
-        
-        // Fail-safe: Fall back entirely to local Vite compiled list + static fallback
-        try {
-          const localModules = import.meta.glob('../../data/projects/*.json', { eager: true });
-          const localList = Object.values(localModules).map(module => module.default || module);
-          
-          const merged = [...localList];
-          projectsList.forEach(staticProj => {
-            if (!merged.some(p => p.slug === staticProj.slug)) {
-              merged.push({ ...staticProj, status: 'published' });
-            }
-          });
+        // Filter out drafts for public viewing
+        const publishedProjects = mergedProjects.filter(p => p.status !== 'draft');
+        setProjects(publishedProjects);
 
-          setProjects(merged.filter(p => p.status !== 'draft'));
-        } catch (innerErr) {
-          setProjects(projectsList.map(p => ({ ...p, status: 'published' })));
-        }
-      } finally {
-        setLoadingProjects(false);
-      }
-    };
-
-    fetchProjects();
-  }, []);
-
-  // Fetch articles list (merged with Vite compiled local data)
-  useEffect(() => {
-    const fetchArticles = async () => {
-      setLoadingArticles(true);
-      try {
-        // 1. Scan and resolve all local JSON articles compiled at build time by Vite
-        const localModules = import.meta.glob('../../data/articles/*.json', { eager: true });
-        const localList = Object.values(localModules).map(module => module.default || module);
-
-        // 2. Fetch live CMS list from GitHub REST API
-        const res = await fetch(`${API_BASE}/contents/data/articles?ref=${BRANCH}&nocache=${Date.now()}`);
-        if (!res.ok) throw new Error('CMS API rate limited or offline');
-
-        const files = await res.json();
-        const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-
-        const cmsArticles = await Promise.all(
-          jsonFiles.map(async (file) => {
-            const rawRes = await fetch(`${RAW_BASE}/${file.path}?t=${Date.now()}`);
-            return rawRes.json();
-          })
-        );
-
-        // Filter out drafts
-        const publishedCMS = cmsArticles.filter(a => a.status !== 'draft');
-
-        // Merge: Dynamic CMS fetches override/extend local build-time modules
-        const merged = [...publishedCMS];
-        localList.forEach(localArt => {
-          if (!merged.some(a => a.slug === localArt.slug)) {
-            merged.push(localArt);
+        // 4. Merge articles: dynamic CMS fetches override/extend local build-time modules
+        const mergedArticles = [...cmsArticles];
+        localArticles.forEach(localArt => {
+          if (!mergedArticles.some(a => a.slug === localArt.slug)) {
+            mergedArticles.push({ ...localArt, storageSource: 'local' });
           }
         });
 
-        // Sort by publish date (newest first)
-        const activeArticles = merged.filter(a => a.status !== 'draft');
+        const activeArticles = mergedArticles.filter(a => a.status !== 'draft');
         activeArticles.sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
-
         setArticles(activeArticles);
+
       } catch (err) {
-        console.warn('Articles CMS Hybrid Fetch Notice:', err.message);
-        
-        // Fail-safe: Fall back entirely to local Vite compiled list
-        try {
-          const localModules = import.meta.glob('../../data/articles/*.json', { eager: true });
-          const localList = Object.values(localModules).map(module => module.default || module);
-          
-          const activeArticles = localList.filter(a => a.status !== 'draft');
-          activeArticles.sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
-          setArticles(activeArticles);
-        } catch (innerErr) {
-          setArticles([]);
-        }
+        console.error('CMS Multi-Target hybrid fetch error:', err);
+        // Fail-safe fallbacks
+        setProjects(projectsList.map(p => ({ ...p, status: 'published', storageSource: 'static' })));
+        setArticles([]);
       } finally {
-        setLoadingArticles(false);
+        if (active) {
+          setLoadingProjects(false);
+          setLoadingArticles(false);
+        }
       }
     };
 
-    fetchArticles();
+    fetchAllData();
+
+    // Listen for storage targets changed event to reload automatically
+    const handleReload = () => {
+      fetchAllData();
+    };
+    window.addEventListener('portfolio_storage_targets_changed', handleReload);
+
+    return () => {
+      active = false;
+      window.removeEventListener('portfolio_storage_targets_changed', handleReload);
+    };
   }, []);
 
   return { projects, articles, loadingProjects, loadingArticles };
 }
 
-// Fetch markdown content of a project or article
-export async function fetchCMSContent(slug, type = 'projects') {
-  try {
-    const response = await fetch(`${RAW_BASE}/data/${type}/${slug}.md?t=${Date.now()}`);
-    if (!response.ok) throw new Error('Not found in CMS');
-    return await response.text();
-  } catch (err) {
-    // Secondary fallback: check local workspace via Vite dev server
-    try {
-      const localResponse = await fetch(`/data/${type}/${slug}.md`);
-      if (localResponse.ok) {
-        return await localResponse.text();
+// Fetch markdown content of a project or article, dynamically resolving it across all targets
+export async function fetchCMSContent(slug, type = 'projects', targetId = null) {
+  // If targetId is provided, fetch specifically from it
+  if (targetId) {
+    const target = storageManager.getTargets().find(t => t.id === targetId);
+    if (target) {
+      try {
+        const cms = storageManager.getStorageCMS(target);
+        const fileObj = await cms.getFile(`data/${type}/${slug}.md`);
+        if (fileObj) return fileObj.content;
+      } catch (err) {
+        console.warn(`Failed to fetch file from target ${targetId}:`, err);
       }
-    } catch (innerErr) {
-      console.warn('Local dev file fetch failed:', innerErr);
     }
-    
-    // Legacy public folder path backup
-    if (type === 'projects') {
+  }
+
+  // Otherwise, automatically scan all read active targets
+  let readTargets = [];
+  try {
+    const remoteTargets = await storageManager.fetchRemoteTargets();
+    if (remoteTargets && remoteTargets.length > 0) {
+      readTargets = remoteTargets.filter(t => t.isReadActive);
+    } else {
+      readTargets = storageManager.getAllReadTargets();
+    }
+  } catch (e) {
+    readTargets = storageManager.getAllReadTargets();
+  }
+  for (const target of readTargets) {
+    try {
+      const cms = storageManager.getStorageCMS(target);
+      const fileObj = await cms.getFile(`data/${type}/${slug}.md`);
+      if (fileObj) return fileObj.content;
+    } catch (e) {
+      // Keep searching next target
+    }
+  }
+
+  // Fallback to local files
+  try {
+    const localResponse = await fetch(`/data/${type}/${slug}.md`);
+    if (localResponse.ok) {
+      return await localResponse.text();
+    }
+  } catch (innerErr) {
+    // Ignore
+  }
+
+  // Legacy public folder path backup
+  if (type === 'projects') {
+    try {
       const fallbackResponse = await fetch(`/projects/${slug}.md`);
       if (fallbackResponse.ok) {
         return await fallbackResponse.text();
       }
+    } catch (e) {
+      // Ignore
     }
-    throw err;
   }
+
+  throw new Error(`Content not found for slug ${slug} in any storage target`);
 }

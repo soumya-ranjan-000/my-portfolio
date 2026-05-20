@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import MarkdownEditor from '../components/MarkdownEditor';
 import { useGitHubAuth } from '../../hooks/useGitHubAuth';
-import { createGitHubCMS } from '../services/githubCMS';
+import { storageManager } from '../services/storageManager';
 import { FaSave, FaTrash, FaSpinner, FaFolderOpen, FaArrowLeft, FaImage } from 'react-icons/fa';
 import toast, { Toaster } from 'react-hot-toast';
 import { useDropzone } from 'react-dropzone';
@@ -11,8 +11,16 @@ import { useDropzone } from 'react-dropzone';
 export default function ProjectEditor() {
   const { slug: routeSlug } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetId = searchParams.get('target');
   const { token } = useGitHubAuth();
-  const cms = createGitHubCMS(token);
+
+  // Resolve storage target: if editing and target query param exists, use it. Otherwise, use active write target.
+  const activeTarget = targetId 
+    ? (storageManager.getTargets().find(t => t.id === targetId) || storageManager.getActiveWriteTarget())
+    : storageManager.getActiveWriteTarget();
+
+  const cms = storageManager.getStorageCMS(activeTarget, token);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -80,17 +88,16 @@ export default function ProjectEditor() {
     if (files.length === 0) return;
     const file = files[0];
     const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-    const repoPath = `public/images/projects/${filename}`;
 
-    const loadingToast = toast.loading('Uploading banner image to GitHub...');
+    const loadingToast = toast.loading(`Uploading banner image to Public CDN...`);
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
-        const rawUrl = await cms.uploadImage(repoPath, base64, `Upload project banner: ${filename}`);
+        const rawUrl = await storageManager.uploadMediaToCDN('projects', slug || 'temp', filename, base64, token);
         setImage(rawUrl);
-        toast.success('Banner uploaded successfully!');
+        toast.success('Banner uploaded to Public CDN successfully!');
       };
     } catch (err) {
       console.error(err);
@@ -114,7 +121,7 @@ export default function ProjectEditor() {
     }
 
     setSaving(true);
-    const loadingToast = toast.loading('Saving project to GitHub...');
+    const loadingToast = toast.loading(`Saving project to ${activeTarget.name}...`);
 
     try {
       const projectData = {
@@ -143,7 +150,7 @@ export default function ProjectEditor() {
       setTimeout(() => navigate('/admin'), 1500);
     } catch (err) {
       console.error(err);
-      toast.error('Failed to commit files to GitHub');
+      toast.error(`Failed to save project to ${activeTarget.name}`);
     } finally {
       toast.dismiss(loadingToast);
       setSaving(false);
@@ -169,14 +176,14 @@ export default function ProjectEditor() {
               <FaFolderOpen className="text-primary-400" size={24} />
               {isEdit ? `Edit Project: ${title}` : 'Create New Project'}
             </h1>
-            <p className="text-slate-400 text-sm">Fill in the fields to generate static asset entries inside your portfolio repository.</p>
+            <p className="text-slate-400 text-sm">Fill in the fields to generate files inside your storage target: {activeTarget.name}.</p>
           </div>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-slate-400 font-medium">Fetching details from branch...</p>
+            <p className="text-slate-400 font-medium">Fetching details from storage target...</p>
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-6">
@@ -314,7 +321,14 @@ export default function ProjectEditor() {
               {/* Rich Markdown Details */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-300">Project Details (Markdown Content)</label>
-                <MarkdownEditor value={content} onChange={setContent} cms={cms} />
+                <MarkdownEditor 
+                  value={content} 
+                  onChange={setContent} 
+                  editorType="project"
+                  editorSlug={slug}
+                  githubToken={token}
+                  cms={cms}
+                />
               </div>
             </div>
 

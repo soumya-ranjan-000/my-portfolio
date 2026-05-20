@@ -58,3 +58,8 @@
 ::selection {
   @apply bg-primary-500/30 text-white;
 }
+
+/* Admin dashboard overall typography scale: reduces root font size to make layouts and text more compact */
+html.admin-theme {
+  font-size: 14px !important;
+}
