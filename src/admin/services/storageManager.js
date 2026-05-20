@@ -14,23 +14,7 @@ const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN || import.meta.env.VITE_G
 // Helper to initialize default targets
 function initDefaultTargets() {
   const existing = localStorage.getItem(TARGETS_KEY);
-  if (existing) {
-    try {
-      const parsed = JSON.parse(existing);
-      if (parsed.length > 0) {
-        // If default target token is empty but GITHUB_TOKEN is set, merge it
-        const defaultTarget = parsed.find(t => t.id === 'default-github');
-        if (defaultTarget && defaultTarget.config && !defaultTarget.config.token && GITHUB_TOKEN) {
-          defaultTarget.config.token = GITHUB_TOKEN;
-          localStorage.setItem(TARGETS_KEY, JSON.stringify(parsed));
-        }
-        return parsed;
-      }
-    } catch (e) {
-      console.error('Failed to parse storage targets', e);
-    }
-  }
-
+  
   // Create default GitHub target from Env variables
   const defaultGithub = {
     id: 'default-github',
@@ -47,6 +31,35 @@ function initDefaultTargets() {
     isReadActive: true,
     createdAt: new Date().toISOString()
   };
+
+  if (existing) {
+    try {
+      const parsed = JSON.parse(existing);
+      if (parsed.length > 0) {
+        // Ensure default-github target is always present in parsed
+        const defaultIndex = parsed.findIndex(t => t.id === 'default-github');
+        if (defaultIndex === -1) {
+          // Default github target is missing, let's prepend it
+          const hasWriteActive = parsed.some(t => t.isWriteActive);
+          if (hasWriteActive) {
+            defaultGithub.isWriteActive = false;
+          }
+          parsed.unshift(defaultGithub);
+          localStorage.setItem(TARGETS_KEY, JSON.stringify(parsed));
+        } else {
+          // If default target token is empty but GITHUB_TOKEN is set, merge it
+          const defaultTarget = parsed[defaultIndex];
+          if (defaultTarget.config && !defaultTarget.config.token && GITHUB_TOKEN) {
+            defaultTarget.config.token = GITHUB_TOKEN;
+            localStorage.setItem(TARGETS_KEY, JSON.stringify(parsed));
+          }
+        }
+        return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to parse storage targets', e);
+    }
+  }
 
   const initial = [defaultGithub];
   localStorage.setItem(TARGETS_KEY, JSON.stringify(initial));
@@ -504,11 +517,37 @@ export const storageManager = {
   async fetchRemoteTargets() {
     try {
       const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/data/storage-targets.json`);
+      let remoteTargets = null;
       if (response.ok) {
-        const remoteTargets = await response.json();
-        if (Array.isArray(remoteTargets)) {
-          return remoteTargets;
+        const parsed = await response.json();
+        if (Array.isArray(parsed)) {
+          remoteTargets = parsed;
         }
+      }
+
+      // Create default GitHub target from Env variables
+      const defaultGithub = {
+        id: 'default-github',
+        type: 'github',
+        name: GITHUB_REPO ? `${GITHUB_OWNER}/${GITHUB_REPO}` : 'GitHub (Unconfigured)',
+        config: {
+          owner: GITHUB_OWNER,
+          repo: GITHUB_REPO,
+          branch: GITHUB_BRANCH,
+          folderPath: 'data',
+          token: '' // Never expose public tokens in remote targets
+        },
+        isWriteActive: remoteTargets ? !remoteTargets.some(t => t.isWriteActive) : true,
+        isReadActive: true,
+        createdAt: new Date().toISOString()
+      };
+
+      if (remoteTargets) {
+        const hasDefault = remoteTargets.some(t => t.id === 'default-github');
+        if (!hasDefault) {
+          remoteTargets.unshift(defaultGithub);
+        }
+        return remoteTargets;
       }
     } catch (e) {
       console.warn('[StorageManager] Failed to fetch remote storage targets config, using local storage instead:', e);
@@ -640,6 +679,25 @@ export const storageManager = {
         : new Octokit();
 
       async function getFile(path) {
+        // Optimization: For read operations where there is no admin token (e.g. public visitors),
+        // fetch files directly from raw.githubusercontent.com to bypass GitHub API rate limits.
+        if (!token || token === 'sandbox') {
+          try {
+            const rawUrl = `${rawBase}/${path}?t=${Date.now()}`;
+            const res = await fetch(rawUrl);
+            if (res.ok) {
+              const text = await res.text();
+              return {
+                content: text,
+                sha: 'raw-github-content',
+                downloadUrl: rawUrl,
+              };
+            }
+          } catch (e) {
+            console.warn(`[StorageManager] Failed to fetch raw file via CDN: ${path}, falling back to API:`, e);
+          }
+        }
+
         try {
           const { data } = await octokit.repos.getContent({ owner, repo, path, ref: branch });
           return {

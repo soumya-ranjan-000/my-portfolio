@@ -1,5 +1,20 @@
 [
   {
+    "id": "default-github",
+    "type": "github",
+    "name": "soumya-ranjan-000/my-portfolio",
+    "config": {
+      "owner": "soumya-ranjan-000",
+      "repo": "my-portfolio",
+      "branch": "main",
+      "folderPath": "data",
+      "token": ""
+    },
+    "isWriteActive": false,
+    "isReadActive": true,
+    "createdAt": "2026-05-20T15:11:01.652Z"
+  },
+  {
     "id": "github-1779289861652",
     "type": "github",
     "name": "soumya-ranjan-000/my-portfolio-projects",
@@ -10,7 +25,7 @@
       "folderPath": "data",
       "token": ""
     },
-    "isWriteActive": false,
+    "isWriteActive": true,
     "isReadActive": true,
     "createdAt": "2026-05-20T15:11:01.652Z"
   }
