@@ -24,6 +24,59 @@ export default defineConfig(({ mode }) => {
           server.middlewares.use(async (req, res, next) => {
             if (req.url.startsWith('/api/github-oauth')) {
               const url = new URL(req.url, `http://${req.headers.host}`);
+
+              if (req.method === 'DELETE') {
+                let rawBody = '';
+                req.on('data', chunk => {
+                  rawBody += chunk;
+                });
+                req.on('end', async () => {
+                  let accessToken = '';
+                  try {
+                    const body = rawBody ? JSON.parse(rawBody) : {};
+                    accessToken = body.access_token;
+                  } catch {
+                    res.statusCode = 400;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+                    return;
+                  }
+
+                  if (!accessToken) {
+                    res.statusCode = 400;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ error: 'Access token required' }));
+                    return;
+                  }
+
+                  const clientId = env.VITE_GITHUB_CLIENT_ID;
+                  const clientSecret = env.GITHUB_CLIENT_SECRET || env.client_secret;
+
+                  try {
+                    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+                    const response = await fetch(`https://api.github.com/applications/${clientId}/token`, {
+                      method: 'DELETE',
+                      headers: {
+                        'Accept': 'application/vnd.github+json',
+                        'Authorization': `Basic ${credentials}`,
+                        'Content-Type': 'application/json',
+                        'X-GitHub-Api-Version': '2022-11-28',
+                      },
+                      body: JSON.stringify({ access_token: accessToken }),
+                    });
+
+                    res.statusCode = response.ok || response.status === 404 ? 204 : response.status;
+                    res.setHeader('Access-Control-Allow-Origin', '*');
+                    res.end();
+                  } catch (err) {
+                    res.statusCode = 500;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ error: 'Token revocation failed', details: err.message }));
+                  }
+                });
+                return;
+              }
+
               const code = url.searchParams.get('code');
 
               if (!code) {
