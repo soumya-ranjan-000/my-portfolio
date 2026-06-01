@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -12,39 +12,64 @@ import { useDropzone } from 'react-dropzone';
 import CodeBlock from '../../components/CodeBlock';
 import { storageManager } from '../services/storageManager';
 
+function slugify(text) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9\-]/g, '');
+}
+
+const extractHeadingText = (children) => {
+  return React.Children.toArray(children)
+    .map((child) => {
+      if (typeof child === 'string') return child;
+      if (child && child.props && child.props.children) return extractHeadingText(child.props.children);
+      return '';
+    })
+    .join('');
+};
+
+const renderHeading = (level, className) => ({ node, children, ...props }) => {
+  const id = slugify(extractHeadingText(children));
+  return React.createElement(
+    `h${level}`,
+    { id, 'data-source-line': node.position?.start?.line, className, ...props },
+    children
+  );
+};
+
 const markdownComponents = {
-  h1: ({ node, ...props }) => (
-    <h1 className="text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2" {...props} />
-  ),
-  h2: ({ node, ...props }) => (
-    <h2 className="text-2xl font-semibold font-heading mt-6 mb-3 text-primary-400" {...props} />
-  ),
-  h3: ({ node, ...props }) => (
-    <h3 className="text-xl font-semibold font-heading mt-5 mb-2 text-secondary-400" {...props} />
-  ),
+  h1: renderHeading(1, 'text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2'),
+  h2: renderHeading(2, 'text-2xl font-semibold font-heading mt-6 mb-3 text-primary-400'),
+  h3: renderHeading(3, 'text-xl font-semibold font-heading mt-5 mb-2 text-secondary-400'),
+  h4: renderHeading(4, 'text-lg font-semibold mt-5 mb-2 text-slate-200'),
+  h5: renderHeading(5, 'text-base font-semibold mt-4 mb-2 text-slate-200'),
+  h6: renderHeading(6, 'text-sm font-semibold mt-4 mb-2 uppercase tracking-wide text-slate-400'),
   p: ({ node, ...props }) => (
-    <p className="mb-4 text-slate-300 leading-relaxed tracking-wide text-sm md:text-base" {...props} />
+    <p data-source-line={node.position?.start?.line} className="mb-4 text-slate-300 leading-relaxed tracking-wide text-sm md:text-base" {...props} />
   ),
   ul: ({ node, ...props }) => (
-    <ul className="list-disc list-inside mb-4 pl-2 text-slate-300 marker:text-primary-500 space-y-1 text-sm md:text-base" {...props} />
+    <ul data-source-line={node.position?.start?.line} className="list-disc list-inside mb-4 pl-2 text-slate-300 marker:text-primary-500 space-y-1 text-sm md:text-base" {...props} />
   ),
   ol: ({ node, ...props }) => (
-    <ol className="list-decimal list-inside mb-4 pl-2 text-slate-300 marker:text-secondary-500 space-y-1 text-sm md:text-base" {...props} />
+    <ol data-source-line={node.position?.start?.line} className="list-decimal list-inside mb-4 pl-2 text-slate-300 marker:text-secondary-500 space-y-1 text-sm md:text-base" {...props} />
   ),
   li: ({ node, ...props }) => (
-    <li className="mb-1 hover:text-slate-200 transition-colors" {...props} />
+    <li data-source-line={node.position?.start?.line} className="mb-1 hover:text-slate-200 transition-colors" {...props} />
   ),
   strong: ({ node, ...props }) => (
     <strong className="text-white font-bold" {...props} />
   ),
   blockquote: ({ node, ...props }) => (
-    <blockquote className="border-l-4 border-primary-500 bg-primary-500/5 px-5 py-3 rounded-r-xl my-4 italic text-slate-400 font-medium text-sm md:text-base" {...props} />
+    <blockquote data-source-line={node.position?.start?.line} className="border-l-4 border-primary-500 bg-primary-500/5 px-5 py-3 rounded-r-xl my-4 italic text-slate-400 font-medium text-sm md:text-base" {...props} />
   ),
   hr: ({ node, ...props }) => (
-    <hr className="my-8 h-px border-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" {...props} />
+    <hr data-source-line={node.position?.start?.line} className="my-8 h-px border-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" {...props} />
   ),
   table: ({ node, ...props }) => (
-    <div className="overflow-x-auto my-6 border border-white/5 rounded-xl">
+    <div data-source-line={node.position?.start?.line} className="overflow-x-auto my-6 border border-white/5 rounded-xl">
       <table className="min-w-full divide-y divide-white/5" {...props} />
     </div>
   ),
@@ -58,6 +83,7 @@ const markdownComponents = {
     if (codeChild && codeChild.props) {
       return (
         <CodeBlock 
+          data-source-line={node.position?.start?.line}
           className={codeChild.props.className} 
           inline={false}
         >
@@ -65,7 +91,7 @@ const markdownComponents = {
         </CodeBlock>
       );
     }
-    return <pre {...props}>{children}</pre>;
+    return <pre data-source-line={node.position?.start?.line} {...props}>{children}</pre>;
   },
   code: ({ node, className, children, ...props }) => (
     <CodeBlock inline={true} className={className} {...props}>
@@ -110,6 +136,7 @@ export default function MarkdownEditor({
   const [isPreview, setIsPreview] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [previewPositions, setPreviewPositions] = useState([]);
   const textareaRef = useRef(null);
   const previewRef = useRef(null);
   const activeScrollSourceRef = useRef(null);
@@ -120,7 +147,21 @@ export default function MarkdownEditor({
 
     const editorEl = e.target;
     const previewEl = previewRef.current;
-    if (editorEl && previewEl) {
+    if (editorEl && previewEl && previewPositions.length > 0) {
+      const lineHeight = parseFloat(getComputedStyle(editorEl).lineHeight) || 18;
+      const topLine = Math.floor(editorEl.scrollTop / lineHeight) + 1;
+      const match = previewPositions.reduce((closest, item) => {
+        if (!closest) return item;
+        return Math.abs(item.line - topLine) < Math.abs(closest.line - topLine) ? item : closest;
+      }, previewPositions[0]);
+
+      if (match) {
+        previewEl.scrollTo({ top: match.offsetTop, behavior: 'auto' });
+      } else {
+        const scrollRatio = editorEl.scrollTop / (editorEl.scrollHeight - editorEl.clientHeight);
+        previewEl.scrollTop = scrollRatio * (previewEl.scrollHeight - previewEl.clientHeight);
+      }
+    } else if (editorEl && previewEl) {
       const scrollRatio = editorEl.scrollTop / (editorEl.scrollHeight - editorEl.clientHeight);
       previewEl.scrollTop = scrollRatio * (previewEl.scrollHeight - previewEl.clientHeight);
     }
@@ -131,13 +172,102 @@ export default function MarkdownEditor({
     }, 100);
   };
 
+  const updatePreviewPositions = () => {
+    const previewEl = previewRef.current;
+    if (!previewEl) return;
+
+    const nodes = previewEl.querySelectorAll('[data-source-line]');
+    const positions = Array.from(nodes)
+      .map((node) => {
+        const line = Number(node.getAttribute('data-source-line'));
+        return Number.isFinite(line) ? { line, offsetTop: node.offsetTop } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.line - b.line);
+
+    setPreviewPositions(positions);
+  };
+
+  const safeCssEscape = (value) => {
+    if (typeof CSS !== 'undefined' && CSS.escape) {
+      return CSS.escape(value);
+    }
+    return value.replace(/[^a-zA-Z0-9_-]/g, '-');
+  };
+
+  const outlineItems = useMemo(() => {
+    const items = [];
+    const regex = /^ {0,3}(#{1,6})\s+(.+)$/gm;
+    const seenIds = {};
+    const textValue = value || '';
+
+    for (const match of textValue.matchAll(regex)) {
+      const level = match[1].length;
+      const text = match[2].trim();
+      if (!text) continue;
+
+      let id = slugify(text);
+      if (!id) continue;
+      if (seenIds[id]) {
+        seenIds[id] += 1;
+        id = `${id}-${seenIds[id]}`;
+      } else {
+        seenIds[id] = 1;
+      }
+
+      items.push({ level, text, id });
+    }
+
+    return items;
+  }, [value]);
+
+  const navigateToHeading = (id) => {
+    const previewEl = previewRef.current;
+    if (!previewEl) return;
+    const target = previewEl.querySelector(`#${safeCssEscape(id)}`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  useEffect(() => {
+    const previewEl = previewRef.current;
+    if (!previewEl) return;
+
+    const updatePositions = () => {
+      const nodes = previewEl.querySelectorAll('[data-source-line]');
+      const positions = Array.from(nodes)
+        .map((node) => {
+          const line = Number(node.getAttribute('data-source-line'));
+          return Number.isFinite(line) ? { line, offsetTop: node.offsetTop } : null;
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.line - b.line);
+
+      setPreviewPositions(positions);
+    };
+
+    updatePositions();
+    const resizeObserver = new ResizeObserver(updatePositions);
+    resizeObserver.observe(previewEl);
+
+    return () => resizeObserver.disconnect();
+  }, [value]);
+
   const handlePreviewScroll = (e) => {
     if (activeScrollSourceRef.current === 'editor') return;
     activeScrollSourceRef.current = 'preview';
 
     const previewEl = e.target;
     const editorEl = textareaRef.current;
-    if (editorEl && previewEl) {
+    if (editorEl && previewEl && previewPositions.length > 0) {
+      const visibleTop = previewEl.scrollTop + 1;
+      const match = [...previewPositions].reverse().find((item) => item.offsetTop <= visibleTop) || previewPositions[0];
+      if (match) {
+        const lineHeight = parseFloat(getComputedStyle(editorEl).lineHeight) || 18;
+        editorEl.scrollTop = Math.max(0, (match.line - 1) * lineHeight);
+      }
+    } else if (editorEl && previewEl) {
       const scrollRatio = previewEl.scrollTop / (previewEl.scrollHeight - previewEl.clientHeight);
       editorEl.scrollTop = scrollRatio * (editorEl.scrollHeight - editorEl.clientHeight);
     }
@@ -339,7 +469,30 @@ export default function MarkdownEditor({
         </div>
 
         {/* Editor Split Panels Grid */}
-        <div className="grid md:grid-cols-2 gap-3 flex-grow h-[calc(100vh-85px)] overflow-hidden">
+        <div className="grid md:grid-cols-[220px_1fr_1fr] gap-3 flex-grow h-[calc(100vh-85px)] overflow-hidden">
+          {/* Navigation Sidebar */}
+          <aside className="hidden md:flex flex-col bg-dark-800/90 border border-white/5 rounded-xl overflow-hidden shadow-2xl h-full p-4">
+            <div className="mb-4 border-b border-white/10 pb-3">
+              <h2 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold">Outline</h2>
+              <p className="mt-2 text-[11px] leading-snug text-slate-500">Jump to headings in the markdown preview.</p>
+            </div>
+            <div className="flex-1 overflow-y-auto pr-2 space-y-2">
+              {outlineItems.length === 0 ? (
+                <p className="text-slate-500 text-sm">No headings found yet. Add `# Heading` or `## Subheading`.</p>
+              ) : (
+                outlineItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => navigateToHeading(item.id)}
+                    className={`w-full text-left transition-colors rounded-xl px-3 py-2 ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} hover:bg-white/5 hover:text-white ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
+                  >
+                    {item.text}
+                  </button>
+                ))
+              )}
+            </div>
+          </aside>
           {/* Left Column (Editor Textarea Card) */}
           <div className={`flex flex-col bg-dark-800/90 border border-white/5 rounded-xl overflow-hidden shadow-2xl h-full ${isPreview ? 'hidden md:flex' : 'flex'}`}>
             <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/5">
@@ -481,7 +634,29 @@ export default function MarkdownEditor({
       </div>
 
       {/* Editor Content Area */}
-      <div className="grid md:grid-cols-2 divide-x divide-white/5 h-[500px] overflow-hidden">
+      <div className="grid md:grid-cols-[220px_1fr_1fr] divide-x divide-white/5 h-[500px] overflow-hidden">
+        <aside className="hidden md:flex flex-col bg-dark-900/70 border-r border-white/5 p-4 overflow-y-auto space-y-3">
+          <div>
+            <h2 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold">Outline</h2>
+            <p className="mt-2 text-[11px] leading-snug text-slate-500">Tap to jump to headings in the preview.</p>
+          </div>
+          <div className="space-y-2">
+            {outlineItems.length === 0 ? (
+              <p className="text-slate-500 text-sm">No headings yet. Add `# Heading` to build an outline.</p>
+            ) : (
+              outlineItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => navigateToHeading(item.id)}
+                  className={`w-full text-left transition-colors rounded-xl px-3 py-2 ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} hover:bg-white/5 hover:text-white ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
+                >
+                  {item.text}
+                </button>
+              ))
+            )}
+          </div>
+        </aside>
         {/* Editor Textarea Pane */}
         <div className={`p-4 h-full flex flex-col ${isPreview ? 'hidden md:flex' : 'flex'}`}>
           <textarea

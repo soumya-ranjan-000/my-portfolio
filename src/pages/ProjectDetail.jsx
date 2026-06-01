@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -11,12 +11,80 @@ import NotebookEmbeds from '../components/NotebookEmbeds';
 
 import { useCMS, fetchCMSContent } from '../hooks/useCMS';
 
+const slugify = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9\-]/g, '');
+};
+
+const extractHeadingText = (children) => {
+  return React.Children.toArray(children)
+    .map((child) => {
+      if (typeof child === 'string') return child;
+      if (child && child.props && child.props.children) return extractHeadingText(child.props.children);
+      return '';
+    })
+    .join('');
+};
+
+const renderHeading = (level, className) => ({ node, children, ...props }) => {
+  const id = slugify(extractHeadingText(children));
+  return React.createElement(
+    `h${level}`,
+    { id, className, ...props },
+    children
+  );
+};
+
+const safeCssEscape = (value) => {
+  if (typeof CSS !== 'undefined' && CSS.escape) {
+    return CSS.escape(value);
+  }
+  return value.replace(/[^a-zA-Z0-9_-]/g, '-');
+};
+
 function ProjectDetail() {
   const { slug } = useParams();
   const { projects, loadingProjects } = useCMS();
   const [project, setProject] = useState(null);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const outlineItems = useMemo(() => {
+    const items = [];
+    const regex = /^ {0,3}(#{1,6})\s+(.+)$/gm;
+    const seenIds = {};
+    const textValue = content || '';
+
+    for (const match of textValue.matchAll(regex)) {
+      const level = match[1].length;
+      const text = match[2].trim();
+      if (!text) continue;
+
+      let id = slugify(text);
+      if (!id) continue;
+      if (seenIds[id]) {
+        seenIds[id] += 1;
+        id = `${id}-${seenIds[id]}`;
+      } else {
+        seenIds[id] = 1;
+      }
+
+      items.push({ level, text, id });
+    }
+
+    return items;
+  }, [content]);
+
+  const navigateToHeading = (id) => {
+    const target = document.getElementById(safeCssEscape(id));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   useEffect(() => {
     const loadProjectData = async () => {
@@ -105,15 +173,12 @@ function ProjectDetail() {
   }
 
   const markdownComponents = {
-    h1: ({ node, ...props }) => (
-      <h1 className="text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2" {...props} />
-    ),
-    h2: ({ node, ...props }) => (
-      <h2 className="text-2xl font-semibold font-heading mt-6 mb-3 text-primary-400" {...props} />
-    ),
-    h3: ({ node, ...props }) => (
-      <h3 className="text-xl font-semibold font-heading mt-5 mb-2 text-secondary-400" {...props} />
-    ),
+    h1: renderHeading(1, 'text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2'),
+    h2: renderHeading(2, 'text-2xl font-semibold font-heading mt-6 mb-3 text-primary-400'),
+    h3: renderHeading(3, 'text-xl font-semibold font-heading mt-5 mb-2 text-secondary-400'),
+    h4: renderHeading(4, 'text-lg font-semibold mt-5 mb-2 text-slate-200'),
+    h5: renderHeading(5, 'text-base font-semibold mt-4 mb-2 text-slate-200'),
+    h6: renderHeading(6, 'text-sm font-semibold mt-4 mb-2 uppercase tracking-wide text-slate-400'),
     p: ({ node, ...props }) => (
       <p className="mb-4 text-slate-300 leading-relaxed tracking-wide text-sm md:text-base" {...props} />
     ),
@@ -249,14 +314,35 @@ function ProjectDetail() {
           </div>
 
           {/* Markdown Content */}
-          <div className="prose prose-invert prose-lg max-w-none">
-            <ReactMarkdown
-              remarkPlugins={[remarkMath]}
-              rehypePlugins={[rehypeKatex]}
-              components={markdownComponents}
-            >
-              {content}
-            </ReactMarkdown>
+          <div className="grid gap-8 md:grid-cols-[220px_1fr]">
+            <aside className="hidden md:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-6 shadow-xl h-fit sticky top-28">
+              <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Page outline</h3>
+              {outlineItems.length === 0 ? (
+                <p className="text-slate-500 text-sm">Add headings to build the outline.</p>
+              ) : (
+                <div className="space-y-2">
+                  {outlineItems.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => navigateToHeading(item.id)}
+                      className={`w-full text-left rounded-xl px-3 py-2 transition-colors hover:bg-white/5 ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
+                    >
+                      {item.text}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </aside>
+            <div className="prose prose-invert prose-lg max-w-none">
+              <ReactMarkdown
+                remarkPlugins={[remarkMath]}
+                rehypePlugins={[rehypeKatex]}
+                components={markdownComponents}
+              >
+                {content}
+              </ReactMarkdown>
+            </div>
           </div>
 
           <NotebookEmbeds item={project} accent="primary" />
