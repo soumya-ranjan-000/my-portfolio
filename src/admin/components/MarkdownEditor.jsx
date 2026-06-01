@@ -147,21 +147,7 @@ export default function MarkdownEditor({
 
     const editorEl = e.target;
     const previewEl = previewRef.current;
-    if (editorEl && previewEl && previewPositions.length > 0) {
-      const lineHeight = parseFloat(getComputedStyle(editorEl).lineHeight) || 18;
-      const topLine = Math.floor(editorEl.scrollTop / lineHeight) + 1;
-      const match = previewPositions.reduce((closest, item) => {
-        if (!closest) return item;
-        return Math.abs(item.line - topLine) < Math.abs(closest.line - topLine) ? item : closest;
-      }, previewPositions[0]);
-
-      if (match) {
-        previewEl.scrollTo({ top: match.offsetTop, behavior: 'auto' });
-      } else {
-        const scrollRatio = editorEl.scrollTop / (editorEl.scrollHeight - editorEl.clientHeight);
-        previewEl.scrollTop = scrollRatio * (previewEl.scrollHeight - previewEl.clientHeight);
-      }
-    } else if (editorEl && previewEl) {
+    if (editorEl && previewEl) {
       const scrollRatio = editorEl.scrollTop / (editorEl.scrollHeight - editorEl.clientHeight);
       previewEl.scrollTop = scrollRatio * (previewEl.scrollHeight - previewEl.clientHeight);
     }
@@ -268,14 +254,7 @@ export default function MarkdownEditor({
 
     const previewEl = e.target;
     const editorEl = textareaRef.current;
-    if (editorEl && previewEl && previewPositions.length > 0) {
-      const visibleTop = previewEl.scrollTop + 1;
-      const match = [...previewPositions].reverse().find((item) => item.offsetTop <= visibleTop) || previewPositions[0];
-      if (match) {
-        const lineHeight = parseFloat(getComputedStyle(editorEl).lineHeight) || 18;
-        editorEl.scrollTop = Math.max(0, (match.line - 1) * lineHeight);
-      }
-    } else if (editorEl && previewEl) {
+    if (editorEl && previewEl) {
       const scrollRatio = previewEl.scrollTop / (previewEl.scrollHeight - previewEl.clientHeight);
       editorEl.scrollTop = scrollRatio * (editorEl.scrollHeight - editorEl.clientHeight);
     }

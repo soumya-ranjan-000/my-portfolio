@@ -180,7 +180,7 @@ export default function Articles() {
   }, [selectedArticle]);
 
   return (
-    <div className="py-20 w-full px-4 max-w-7xl mx-auto min-h-screen">
+    <div className="py-8 w-full px-3 md:px-4 max-w-7xl mx-auto min-h-screen">
       <AnimatePresence mode="wait">
         {!selectedArticle ? (
           /* ================= LIST VIEW ================= */
@@ -202,7 +202,7 @@ export default function Articles() {
             </div>
 
             {loadingArticles ? (
-              <div className="flex flex-col items-center justify-center py-20">
+              <div className="flex flex-col items-center justify-center py-12">
                 <div className="w-10 h-10 border-4 border-secondary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                 <p className="text-slate-400">Loading publications...</p>
               </div>
@@ -283,9 +283,9 @@ export default function Articles() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.4 }}
-            className="max-w-7xl mx-auto grid gap-10 lg:grid-cols-[280px_minmax(0,1fr)]"
+            className="max-w-7xl mx-auto grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]"
           >
-            <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit sticky top-28 self-start max-h-[calc(100vh-180px)] overflow-y-auto">
+            <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit sticky top-28 self-start max-h-[calc(100vh-160px)] overflow-y-auto">
               <h3 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Article outline</h3>
               {outlineItems.length === 0 ? (
                 <p className="text-slate-500 text-[12px]">Add headings to build the outline.</p>
@@ -304,8 +304,8 @@ export default function Articles() {
                 </div>
               )}
             </aside>
-            <div className="glass-card overflow-hidden rounded-2xl border border-white/5 relative shadow-2xl min-h-[calc(100vh-220px)]">
-              <div className="max-h-[calc(100vh-200px)] overflow-y-auto p-6 md:p-12">
+            <div className="glass-card overflow-hidden rounded-2xl border border-white/5 relative shadow-2xl min-h-[calc(100vh-180px)]">
+              <div className="max-h-[calc(100vh-170px)] overflow-y-auto p-5 md:p-8">
                 {/* Back Arrow */}
                 <button
                   onClick={() => setSelectedArticle(null)}
