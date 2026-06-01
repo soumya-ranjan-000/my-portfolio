@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useCMS, fetchCMSContent } from '../hooks/useCMS';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { FaCalendarAlt, FaClock, FaArrowLeft, FaSpinner, FaEye, FaTag } from 'react-icons/fa';
 import CodeBlock from '../components/CodeBlock';
 import NotebookEmbeds from '../components/NotebookEmbeds';
@@ -259,7 +261,13 @@ export default function Articles() {
               </div>
             ) : (
               <div className="prose prose-invert prose-lg max-w-none">
-                <ReactMarkdown components={markdownComponents}>{articleContent}</ReactMarkdown>
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                  components={markdownComponents}
+                >
+                  {articleContent}
+                </ReactMarkdown>
               </div>
             )}
             <NotebookEmbeds item={selectedArticle} accent="secondary" />

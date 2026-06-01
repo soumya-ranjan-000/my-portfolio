@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { 
   FaBold, FaItalic, FaHeading, FaCode, FaListUl, FaListOl, 
   FaQuoteLeft, FaLink, FaImage, FaVideo, FaEye, FaPen, FaYoutube, 
@@ -160,19 +162,23 @@ export default function MarkdownEditor({
     const end = textarea.selectionEnd;
     const text = textarea.value;
     const selectedText = text.substring(start, end);
+    const prevScrollTop = textarea.scrollTop;
+    const prevScrollLeft = textarea.scrollLeft;
 
     const replacement = before + (selectedText || 'text') + after;
     const newValue = text.substring(0, start) + replacement + text.substring(end);
-    
+
     onChange(newValue);
-    
-    // Reset cursor focus and selection
+
+    // Reset cursor focus and selection without scrolling the page
     setTimeout(() => {
-      textarea.focus();
+      textarea.focus({ preventScroll: true });
       textarea.setSelectionRange(
         start + before.length,
         start + before.length + (selectedText || 'text').length
       );
+      textarea.scrollTop = prevScrollTop;
+      textarea.scrollLeft = prevScrollLeft;
     }, 50);
   };
 
@@ -371,7 +377,13 @@ export default function MarkdownEditor({
               className="p-6 flex-grow overflow-y-auto prose prose-invert prose-slate max-w-none bg-dark-900/10"
             >
               {value ? (
-                <ReactMarkdown components={markdownComponents}>{value}</ReactMarkdown>
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                  components={markdownComponents}
+                >
+                  {value}
+                </ReactMarkdown>
               ) : (
                 <p className="text-slate-600 italic">No content written yet. Preview will show up here.</p>
               )}
@@ -430,6 +442,9 @@ export default function MarkdownEditor({
             </label>
           )}
         </div>
+        <div className="text-xs text-slate-500 italic hidden sm:block">
+          Use math with <span className="text-slate-300">$inline$</span> or <span className="text-slate-300">$$display$$</span> syntax.
+        </div>
 
         {/* Action Controls (Toggles + Fullscreen) */}
         <div className="flex items-center gap-3">
@@ -487,7 +502,13 @@ export default function MarkdownEditor({
           className={`p-6 h-full overflow-y-auto prose prose-invert prose-slate max-w-none bg-dark-900/20 ${!isPreview ? 'hidden md:block' : 'block'}`}
         >
           {value ? (
-            <ReactMarkdown components={markdownComponents}>{value}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+              components={markdownComponents}
+            >
+              {value}
+            </ReactMarkdown>
           ) : (
             <p className="text-slate-600 italic">No content written yet. Preview will show up here.</p>
           )}

@@ -1,6 +1,8 @@
 import { useParams } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { projectsList } from "../data/projects";
 import { motion } from 'framer-motion';
 import { FaGithub, FaTimes, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
@@ -248,7 +250,13 @@ function ProjectDetail() {
 
           {/* Markdown Content */}
           <div className="prose prose-invert prose-lg max-w-none">
-            <ReactMarkdown components={markdownComponents}>{content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+              components={markdownComponents}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
 
           <NotebookEmbeds item={project} accent="primary" />
