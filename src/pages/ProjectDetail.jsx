@@ -295,73 +295,75 @@ function ProjectDetail() {
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen py-20 px-4 flex justify-center items-start"
+        className="min-h-screen py-20 px-4"
       >
-        <div className="glass-card max-w-5xl w-full mx-auto px-8 py-10 rounded-2xl md:px-12">
-          {/* Header */}
-          <div className="mb-8 border-b border-white/10 pb-6">
-            <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">{project.title}</h1>
-            {project.github && (
-              <a
-                href={project.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-900 border border-white/10 hover:border-primary-500/50 hover:text-primary-400 transition-colors"
-              >
-                <FaGithub /> <span>View Source</span>
-              </a>
+        <div className="max-w-7xl mx-auto grid gap-10 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-6 shadow-xl h-fit sticky top-28 self-start">
+            <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Page outline</h3>
+            {outlineItems.length === 0 ? (
+              <p className="text-slate-500 text-sm">Add headings to build the outline.</p>
+            ) : (
+              <div className="space-y-2">
+                {outlineItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => navigateToHeading(item.id)}
+                    className={`w-full text-left rounded-2xl px-4 py-3 transition-colors duration-200 hover:bg-white/5 hover:text-white ${item.level === 1 ? 'text-slate-100 font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-7' : item.level === 3 ? 'pl-10' : 'pl-5'}`}
+                  >
+                    {item.text}
+                  </button>
+                ))}
+              </div>
             )}
-          </div>
+          </aside>
 
-          {/* Markdown Content */}
-          <div className="grid gap-8 md:grid-cols-[220px_1fr]">
-            <aside className="hidden md:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-6 shadow-xl h-fit sticky top-28">
-              <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Page outline</h3>
-              {outlineItems.length === 0 ? (
-                <p className="text-slate-500 text-sm">Add headings to build the outline.</p>
-              ) : (
-                <div className="space-y-2">
-                  {outlineItems.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => navigateToHeading(item.id)}
-                      className={`w-full text-left rounded-xl px-3 py-2 transition-colors hover:bg-white/5 ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
-                    >
-                      {item.text}
-                    </button>
-                  ))}
+          <div className="glass-card w-full px-8 py-10 rounded-2xl md:px-12 border border-white/10 shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="mb-8 border-b border-white/10 pb-6">
+              <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">{project.title}</h1>
+              {project.github && (
+                <a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-900 border border-white/10 hover:border-primary-500/50 hover:text-primary-400 transition-colors"
+                >
+                  <FaGithub /> <span>View Source</span>
+                </a>
+              )}
+            </div>
+
+            <div className="max-h-[calc(100vh-240px)] overflow-y-auto pr-2">
+              <div className="prose prose-invert prose-lg max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                  components={markdownComponents}
+                >
+                  {content}
+                </ReactMarkdown>
+              </div>
+
+              <NotebookEmbeds item={project} accent="primary" />
+
+              {project.video && (
+                <div className="mt-10">
+                  <h3 className="text-2xl font-bold text-white mb-4">Demo Video</h3>
+                  <div className="aspect-video rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={project.video}
+                      title="Project Video"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  </div>
                 </div>
               )}
-            </aside>
-            <div className="prose prose-invert prose-lg max-w-none">
-              <ReactMarkdown
-                remarkPlugins={[remarkMath]}
-                rehypePlugins={[rehypeKatex]}
-                components={markdownComponents}
-              >
-                {content}
-              </ReactMarkdown>
             </div>
           </div>
-
-          <NotebookEmbeds item={project} accent="primary" />
-
-          {project.video && (
-            <div className="mt-10">
-              <h3 className="text-2xl font-bold text-white mb-4">Demo Video</h3>
-              <div className="aspect-video rounded-xl overflow-hidden border border-white/10 shadow-lg">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={project.video}
-                  title="Project Video"
-                  allowFullScreen
-                  className="w-full h-full"
-                />
-              </div>
-            </div>
-          )}
         </div>
       </motion.section>
 

@@ -283,68 +283,63 @@ export default function Articles() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.4 }}
-            className="max-w-4xl mx-auto glass-card p-6 md:p-12 rounded-2xl border border-white/5 relative shadow-2xl"
+            className="max-w-7xl mx-auto grid gap-10 lg:grid-cols-[280px_minmax(0,1fr)]"
           >
-            {/* Back Arrow */}
-            <button
-              onClick={() => setSelectedArticle(null)}
-              className="mb-8 p-3 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition flex items-center gap-2 text-sm font-semibold"
-            >
-              <FaArrowLeft size={12} /> <span>Back to publications</span>
-            </button>
+            <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-6 shadow-xl h-fit sticky top-28 self-start">
+              <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Article outline</h3>
+              {outlineItems.length === 0 ? (
+                <p className="text-slate-500 text-sm">Add headings to build the outline.</p>
+              ) : (
+                <div className="space-y-2">
+                  {outlineItems.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => navigateToHeading(item.id)}
+                      className={`w-full text-left rounded-2xl px-4 py-3 transition-colors duration-200 text-left hover:bg-white/5 hover:text-white ${item.level === 1 ? 'text-slate-100 font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-7' : item.level === 3 ? 'pl-10' : 'pl-5'}`}
+                    >
+                      {item.text}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </aside>
+            <div className="glass-card overflow-hidden rounded-2xl border border-white/5 relative shadow-2xl">
+              <div className="max-h-[calc(100vh-240px)] overflow-y-auto p-6 md:p-12">
+                {/* Back Arrow */}
+                <button
+                  onClick={() => setSelectedArticle(null)}
+                  className="mb-8 p-3 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition flex items-center gap-2 text-sm font-semibold"
+                >
+                  <FaArrowLeft size={12} /> <span>Back to publications</span>
+                </button>
 
-            {/* Banner Header Image */}
-            {selectedArticle.coverImage && (
-              <div className="w-full aspect-[2/1] rounded-2xl overflow-hidden border border-white/5 shadow-xl mb-8">
-                <img src={selectedArticle.coverImage} alt={selectedArticle.title} className="w-full h-full object-cover" />
-              </div>
-            )}
+                {/* Banner Header Image */}
+                {selectedArticle.coverImage && (
+                  <div className="w-full aspect-[2/1] rounded-2xl overflow-hidden border border-white/5 shadow-xl mb-8">
+                    <img src={selectedArticle.coverImage} alt={selectedArticle.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
 
-            {/* Headline info */}
-            <div className="border-b border-white/10 pb-6 mb-8">
-              <div className="flex flex-wrap gap-2 mb-4">
-                {selectedArticle.tags && selectedArticle.tags.map(tag => (
-                  <span key={tag} className="flex items-center gap-1 px-2.5 py-0.5 bg-secondary-500/10 text-secondary-400 text-[10px] font-bold rounded-full border border-secondary-500/15 uppercase tracking-wide">
-                    <FaTag size={8} /> {tag}
-                  </span>
-                ))}
-              </div>
-              <h1 className="text-3xl md:text-5xl font-heading font-bold text-white mb-4 leading-tight">
-                {selectedArticle.title}
-              </h1>
-              <div className="flex items-center gap-6 text-sm text-slate-500 font-semibold">
-                <span className="flex items-center gap-1.5"><FaCalendarAlt /> {new Date(selectedArticle.publishDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                <span className="flex items-center gap-1.5"><FaClock /> {selectedArticle.readTime}</span>
-              </div>
-            </div>
+                {/* Headline info */}
+                <div className="border-b border-white/10 pb-6 mb-8">
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedArticle.tags && selectedArticle.tags.map(tag => (
+                      <span key={tag} className="flex items-center gap-1 px-2.5 py-0.5 bg-secondary-500/10 text-secondary-400 text-[10px] font-bold rounded-full border border-secondary-500/15 uppercase tracking-wide">
+                        <FaTag size={8} /> {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <h1 className="text-3xl md:text-5xl font-heading font-bold text-white mb-4 leading-tight">
+                    {selectedArticle.title}
+                  </h1>
+                  <div className="flex items-center gap-6 text-sm text-slate-500 font-semibold">
+                    <span className="flex items-center gap-1.5"><FaCalendarAlt /> {new Date(selectedArticle.publishDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    <span className="flex items-center gap-1.5"><FaClock /> {selectedArticle.readTime}</span>
+                  </div>
+                </div>
 
-            {/* Article Content loader/rendered Markdown */}
-            {loadingContent ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="w-10 h-10 border-4 border-secondary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-400">Fetching publication content...</p>
-              </div>
-            ) : (
-              <div className="grid gap-8 md:grid-cols-[220px_1fr]">
-                <aside className="hidden md:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-6 shadow-xl h-fit sticky top-28">
-                  <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Article outline</h3>
-                  {outlineItems.length === 0 ? (
-                    <p className="text-slate-500 text-sm">Add headings to build the outline.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {outlineItems.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => navigateToHeading(item.id)}
-                          className={`w-full text-left rounded-xl px-3 py-2 transition-colors hover:bg-white/5 ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
-                        >
-                          {item.text}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </aside>
+                {/* Article Content */}
                 <div className="prose prose-invert prose-lg max-w-none">
                   <ReactMarkdown
                     remarkPlugins={[remarkMath]}
@@ -354,9 +349,10 @@ export default function Articles() {
                     {articleContent}
                   </ReactMarkdown>
                 </div>
+
+                <NotebookEmbeds item={selectedArticle} accent="secondary" />
               </div>
-            )}
-            <NotebookEmbeds item={selectedArticle} accent="secondary" />
+            </div>
           </motion.article>
         )}
       </AnimatePresence>
