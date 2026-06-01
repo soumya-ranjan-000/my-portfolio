@@ -43,6 +43,72 @@ const safeCssEscape = (value) => {
   return value.replace(/[^a-zA-Z0-9_-]/g, '-');
 };
 
+const extractMarkdownHeadings = (text) => {
+  const items = [];
+  const seenIds = {};
+  const lines = (text || '').split(/\r?\n/);
+  let inFencedCode = false;
+  let fenceMarker = '';
+  let previousLine = '';
+
+  const pushHeading = (level, rawText) => {
+    const textValue = rawText.trim();
+    if (!textValue) return;
+    let id = slugify(textValue.replace(/<[^>]+>/g, ''));
+    if (!id) return;
+    if (seenIds[id]) {
+      seenIds[id] += 1;
+      id = `${id}-${seenIds[id]}`;
+    } else {
+      seenIds[id] = 1;
+    }
+    items.push({ level, text: textValue, id });
+  };
+
+  for (const line of lines) {
+    const fencedMatch = line.match(/^([`~]{3,})(.*)$/);
+    if (fencedMatch) {
+      const markerChar = fencedMatch[1][0];
+      if (!inFencedCode) {
+        inFencedCode = true;
+        fenceMarker = markerChar;
+      } else if (markerChar === fenceMarker) {
+        inFencedCode = false;
+        fenceMarker = '';
+      }
+      previousLine = '';
+      continue;
+    }
+
+    if (inFencedCode) {
+      continue;
+    }
+
+    if (/^[ \t]{4,}/.test(line)) {
+      previousLine = '';
+      continue;
+    }
+
+    const atxMatch = line.match(/^ {0,3}(#{1,6})\s+(.*)$/);
+    if (atxMatch) {
+      pushHeading(atxMatch[1].length, atxMatch[2]);
+      previousLine = '';
+      continue;
+    }
+
+    const setextMatch = line.match(/^[ \t]*(=+|-+)[ \t]*$/);
+    if (setextMatch && previousLine.trim()) {
+      pushHeading(setextMatch[1].startsWith('=') ? 1 : 2, previousLine);
+      previousLine = '';
+      continue;
+    }
+
+    previousLine = line;
+  }
+
+  return items;
+};
+
 const markdownComponents = {
   h1: renderHeading(1, 'text-2xl md:text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2'),
   h2: renderHeading(2, 'text-xl md:text-2xl font-semibold font-heading mt-6 mb-3 text-secondary-400'),
@@ -180,7 +246,7 @@ export default function Articles() {
   }, [selectedArticle]);
 
   return (
-    <div className="py-8 w-full px-3 md:px-4 max-w-7xl mx-auto min-h-screen">
+    <div className="pt-20 pb-4 w-full px-2 md:px-3 max-w-full mx-auto min-h-[calc(100vh-5.5rem)]">
       <AnimatePresence mode="wait">
         {!selectedArticle ? (
           /* ================= LIST VIEW ================= */
@@ -283,7 +349,7 @@ export default function Articles() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.4 }}
-            className="max-w-7xl mx-auto grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]"
+            className="w-full h-full grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]"
           >
             <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit sticky top-28 self-start max-h-[calc(100vh-160px)] overflow-y-auto">
               <h3 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Article outline</h3>
@@ -304,8 +370,8 @@ export default function Articles() {
                 </div>
               )}
             </aside>
-            <div className="glass-card overflow-hidden rounded-2xl border border-white/5 relative shadow-2xl min-h-[calc(100vh-180px)]">
-              <div className="max-h-[calc(100vh-170px)] overflow-y-auto p-5 md:p-8">
+            <div className="glass-card overflow-hidden rounded-2xl border border-white/5 relative shadow-2xl h-full">
+              <div className="h-full overflow-y-auto p-5 md:p-8">
                 {/* Back Arrow */}
                 <button
                   onClick={() => setSelectedArticle(null)}

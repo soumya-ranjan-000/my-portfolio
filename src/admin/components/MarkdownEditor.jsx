@@ -181,31 +181,73 @@ export default function MarkdownEditor({
     return value.replace(/[^a-zA-Z0-9_-]/g, '-');
   };
 
-  const outlineItems = useMemo(() => {
+  const extractMarkdownHeadings = (text) => {
     const items = [];
-    const regex = /^ {0,3}(#{1,6})\s+(.+)$/gm;
     const seenIds = {};
-    const textValue = value || '';
+    const lines = (text || '').split(/\r?\n/);
+    let inFencedCode = false;
+    let fenceMarker = '';
+    let previousLine = '';
 
-    for (const match of textValue.matchAll(regex)) {
-      const level = match[1].length;
-      const text = match[2].trim();
-      if (!text) continue;
-
-      let id = slugify(text);
-      if (!id) continue;
+    const pushHeading = (level, rawText) => {
+      const textValue = rawText.trim();
+      if (!textValue) return;
+      let id = slugify(textValue.replace(/<[^>]+>/g, ''));
+      if (!id) return;
       if (seenIds[id]) {
         seenIds[id] += 1;
         id = `${id}-${seenIds[id]}`;
       } else {
         seenIds[id] = 1;
       }
+      items.push({ level, text: textValue, id });
+    };
 
-      items.push({ level, text, id });
+    for (const line of lines) {
+      const fencedMatch = line.match(/^([`~]{3,})(.*)$/);
+      if (fencedMatch) {
+        const markerChar = fencedMatch[1][0];
+        if (!inFencedCode) {
+          inFencedCode = true;
+          fenceMarker = markerChar;
+        } else if (markerChar === fenceMarker) {
+          inFencedCode = false;
+          fenceMarker = '';
+        }
+        previousLine = '';
+        continue;
+      }
+
+      if (inFencedCode) {
+        continue;
+      }
+
+      if (/^[ \t]{4,}/.test(line)) {
+        previousLine = '';
+        continue;
+      }
+
+      const atxMatch = line.match(/^ {0,3}(#{1,6})\s+(.*)$/);
+      if (atxMatch) {
+        pushHeading(atxMatch[1].length, atxMatch[2]);
+        previousLine = '';
+        continue;
+      }
+
+      const setextMatch = line.match(/^[ \t]*(=+|-+)[ \t]*$/);
+      if (setextMatch && previousLine.trim()) {
+        pushHeading(setextMatch[1].startsWith('=') ? 1 : 2, previousLine);
+        previousLine = '';
+        continue;
+      }
+
+      previousLine = line;
     }
 
     return items;
-  }, [value]);
+  };
+
+  const outlineItems = useMemo(() => extractMarkdownHeadings(value), [value]);
 
   const navigateToHeading = (id) => {
     const previewEl = previewRef.current;

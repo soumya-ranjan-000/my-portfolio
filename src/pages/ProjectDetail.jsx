@@ -46,6 +46,72 @@ const safeCssEscape = (value) => {
   return value.replace(/[^a-zA-Z0-9_-]/g, '-');
 };
 
+const extractMarkdownHeadings = (text) => {
+  const items = [];
+  const seenIds = {};
+  const lines = (text || '').split(/\r?\n/);
+  let inFencedCode = false;
+  let fenceMarker = '';
+  let previousLine = '';
+
+  const pushHeading = (level, rawText) => {
+    const textValue = rawText.trim();
+    if (!textValue) return;
+    let id = slugify(textValue.replace(/<[^>]+>/g, ''));
+    if (!id) return;
+    if (seenIds[id]) {
+      seenIds[id] += 1;
+      id = `${id}-${seenIds[id]}`;
+    } else {
+      seenIds[id] = 1;
+    }
+    items.push({ level, text: textValue, id });
+  };
+
+  for (const line of lines) {
+    const fencedMatch = line.match(/^([`~]{3,})(.*)$/);
+    if (fencedMatch) {
+      const markerChar = fencedMatch[1][0];
+      if (!inFencedCode) {
+        inFencedCode = true;
+        fenceMarker = markerChar;
+      } else if (markerChar === fenceMarker) {
+        inFencedCode = false;
+        fenceMarker = '';
+      }
+      previousLine = '';
+      continue;
+    }
+
+    if (inFencedCode) {
+      continue;
+    }
+
+    if (/^[ \t]{4,}/.test(line)) {
+      previousLine = '';
+      continue;
+    }
+
+    const atxMatch = line.match(/^ {0,3}(#{1,6})\s+(.*)$/);
+    if (atxMatch) {
+      pushHeading(atxMatch[1].length, atxMatch[2]);
+      previousLine = '';
+      continue;
+    }
+
+    const setextMatch = line.match(/^[ \t]*(=+|-+)[ \t]*$/);
+    if (setextMatch && previousLine.trim()) {
+      pushHeading(setextMatch[1].startsWith('=') ? 1 : 2, previousLine);
+      previousLine = '';
+      continue;
+    }
+
+    previousLine = line;
+  }
+
+  return items;
+};
+
 function ProjectDetail() {
   const { slug } = useParams();
   const { projects, loadingProjects } = useCMS();
@@ -295,9 +361,9 @@ function ProjectDetail() {
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen py-8 px-3 md:px-4"
+        className="min-h-[calc(100vh-5.5rem)] pt-20 pb-4 px-2 md:px-3"
       >
-        <div className="max-w-7xl mx-auto grid gap-10 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="w-full max-w-full mx-auto grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit sticky top-28 self-start max-h-[calc(100vh-180px)] overflow-y-auto">
             <h3 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Page outline</h3>
             {outlineItems.length === 0 ? (
@@ -318,7 +384,7 @@ function ProjectDetail() {
             )}
           </aside>
 
-          <div className="glass-card w-full px-6 py-8 rounded-2xl md:px-8 border border-white/10 shadow-2xl overflow-hidden min-h-[calc(100vh-180px)]">
+          <div className="glass-card w-full px-5 py-6 rounded-2xl md:px-7 border border-white/10 shadow-2xl overflow-hidden h-full">
             {/* Header */}
             <div className="mb-8 border-b border-white/10 pb-6">
               <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">{project.title}</h1>
@@ -334,7 +400,7 @@ function ProjectDetail() {
               )}
             </div>
 
-            <div className="max-h-[calc(100vh-170px)] overflow-y-auto pr-2">
+            <div className="h-full overflow-y-auto pr-2">
               <div className="prose prose-sm prose-invert max-w-none">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath]}
