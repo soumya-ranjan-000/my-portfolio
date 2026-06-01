@@ -184,7 +184,7 @@ export default function ArticleEditor() {
       <Toaster position="bottom-right" />
       <Sidebar />
 
-      <main className="flex-grow p-6 md:p-8 overflow-y-auto max-w-5xl">
+      <main className="flex-grow p-6 md:p-8 overflow-y-auto max-w-full w-full">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button

@@ -44,20 +44,20 @@ const safeCssEscape = (value) => {
 };
 
 const markdownComponents = {
-  h1: renderHeading(1, 'text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2'),
-  h2: renderHeading(2, 'text-2xl font-semibold font-heading mt-6 mb-3 text-secondary-400'),
-  h3: renderHeading(3, 'text-xl font-semibold font-heading mt-5 mb-2 text-slate-300'),
-  h4: renderHeading(4, 'text-lg font-semibold mt-5 mb-2 text-slate-200'),
-  h5: renderHeading(5, 'text-base font-semibold mt-4 mb-2 text-slate-200'),
-  h6: renderHeading(6, 'text-sm font-semibold mt-4 mb-2 uppercase tracking-wide text-slate-400'),
+  h1: renderHeading(1, 'text-2xl md:text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2'),
+  h2: renderHeading(2, 'text-xl md:text-2xl font-semibold font-heading mt-6 mb-3 text-secondary-400'),
+  h3: renderHeading(3, 'text-lg md:text-xl font-semibold font-heading mt-5 mb-2 text-slate-300'),
+  h4: renderHeading(4, 'text-base md:text-lg font-semibold mt-5 mb-2 text-slate-200'),
+  h5: renderHeading(5, 'text-sm md:text-base font-semibold mt-4 mb-2 text-slate-200'),
+  h6: renderHeading(6, 'text-xs md:text-sm font-semibold mt-4 mb-2 uppercase tracking-wide text-slate-400'),
   p: ({ node, ...props }) => (
-    <p className="mb-4 text-slate-300 leading-relaxed tracking-wide text-sm md:text-base" {...props} />
+    <p className="mb-4 text-slate-300 leading-relaxed tracking-wide text-sm" {...props} />
   ),
   ul: ({ node, ...props }) => (
-    <ul className="list-disc list-inside mb-4 pl-2 text-slate-300 marker:text-secondary-500 space-y-1 text-sm md:text-base" {...props} />
+    <ul className="list-disc list-inside mb-4 pl-2 text-slate-300 marker:text-secondary-500 space-y-1 text-sm" {...props} />
   ),
   ol: ({ node, ...props }) => (
-    <ol className="list-decimal list-inside mb-4 pl-2 text-slate-300 marker:text-primary-500 space-y-1 text-sm md:text-base" {...props} />
+    <ol className="list-decimal list-inside mb-4 pl-2 text-slate-300 marker:text-primary-500 space-y-1 text-sm" {...props} />
   ),
   li: ({ node, ...props }) => (
     <li className="mb-1 hover:text-slate-200 transition-colors" {...props} />
@@ -285,10 +285,10 @@ export default function Articles() {
             transition={{ duration: 0.4 }}
             className="max-w-7xl mx-auto grid gap-10 lg:grid-cols-[280px_minmax(0,1fr)]"
           >
-            <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-6 shadow-xl h-fit sticky top-28 self-start">
-              <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Article outline</h3>
+            <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit sticky top-28 self-start max-h-[calc(100vh-180px)] overflow-y-auto">
+              <h3 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Article outline</h3>
               {outlineItems.length === 0 ? (
-                <p className="text-slate-500 text-sm">Add headings to build the outline.</p>
+                <p className="text-slate-500 text-[12px]">Add headings to build the outline.</p>
               ) : (
                 <div className="space-y-2">
                   {outlineItems.map((item) => (
@@ -296,7 +296,7 @@ export default function Articles() {
                       key={item.id}
                       type="button"
                       onClick={() => navigateToHeading(item.id)}
-                      className={`w-full text-left rounded-2xl px-4 py-3 transition-colors duration-200 text-left hover:bg-white/5 hover:text-white ${item.level === 1 ? 'text-slate-100 font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-7' : item.level === 3 ? 'pl-10' : 'pl-5'}`}
+                      className={`w-full text-left rounded-2xl px-3 py-2 text-sm font-sans transition-colors duration-200 hover:bg-white/5 hover:text-white ${item.level === 1 ? 'text-slate-100 font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
                     >
                       {item.text}
                     </button>
@@ -304,8 +304,8 @@ export default function Articles() {
                 </div>
               )}
             </aside>
-            <div className="glass-card overflow-hidden rounded-2xl border border-white/5 relative shadow-2xl">
-              <div className="max-h-[calc(100vh-240px)] overflow-y-auto p-6 md:p-12">
+            <div className="glass-card overflow-hidden rounded-2xl border border-white/5 relative shadow-2xl min-h-[calc(100vh-220px)]">
+              <div className="max-h-[calc(100vh-200px)] overflow-y-auto p-6 md:p-12">
                 {/* Back Arrow */}
                 <button
                   onClick={() => setSelectedArticle(null)}
@@ -340,7 +340,7 @@ export default function Articles() {
                 </div>
 
                 {/* Article Content */}
-                <div className="prose prose-invert prose-lg max-w-none">
+                <div className="prose prose-sm prose-invert max-w-none">
                   <ReactMarkdown
                     remarkPlugins={[remarkMath]}
                     rehypePlugins={[rehypeKatex]}

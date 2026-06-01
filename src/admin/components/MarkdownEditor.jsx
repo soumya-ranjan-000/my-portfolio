@@ -260,7 +260,7 @@ export default function MarkdownEditor({
     resizeObserver.observe(previewEl);
 
     return () => resizeObserver.disconnect();
-  }, [value]);
+  }, [value, isMaximized, isPreview]);
 
   const handlePreviewScroll = (e) => {
     if (activeScrollSourceRef.current === 'editor') return;

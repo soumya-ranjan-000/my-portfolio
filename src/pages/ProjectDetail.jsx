@@ -298,10 +298,10 @@ function ProjectDetail() {
         className="min-h-screen py-20 px-4"
       >
         <div className="max-w-7xl mx-auto grid gap-10 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-6 shadow-xl h-fit sticky top-28 self-start">
-            <h3 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Page outline</h3>
+          <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit sticky top-28 self-start max-h-[calc(100vh-180px)] overflow-y-auto">
+            <h3 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Page outline</h3>
             {outlineItems.length === 0 ? (
-              <p className="text-slate-500 text-sm">Add headings to build the outline.</p>
+              <p className="text-slate-500 text-[12px]">Add headings to build the outline.</p>
             ) : (
               <div className="space-y-2">
                 {outlineItems.map((item) => (
@@ -309,7 +309,7 @@ function ProjectDetail() {
                     key={item.id}
                     type="button"
                     onClick={() => navigateToHeading(item.id)}
-                    className={`w-full text-left rounded-2xl px-4 py-3 transition-colors duration-200 hover:bg-white/5 hover:text-white ${item.level === 1 ? 'text-slate-100 font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-7' : item.level === 3 ? 'pl-10' : 'pl-5'}`}
+                    className={`w-full text-left rounded-2xl px-3 py-2 text-sm font-sans transition-colors duration-200 hover:bg-white/5 hover:text-white ${item.level === 1 ? 'text-slate-100 font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
                   >
                     {item.text}
                   </button>
@@ -318,7 +318,7 @@ function ProjectDetail() {
             )}
           </aside>
 
-          <div className="glass-card w-full px-8 py-10 rounded-2xl md:px-12 border border-white/10 shadow-2xl overflow-hidden">
+          <div className="glass-card w-full px-8 py-10 rounded-2xl md:px-12 border border-white/10 shadow-2xl overflow-hidden min-h-[calc(100vh-220px)]">
             {/* Header */}
             <div className="mb-8 border-b border-white/10 pb-6">
               <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">{project.title}</h1>
@@ -334,8 +334,8 @@ function ProjectDetail() {
               )}
             </div>
 
-            <div className="max-h-[calc(100vh-240px)] overflow-y-auto pr-2">
-              <div className="prose prose-invert prose-lg max-w-none">
+            <div className="max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+              <div className="prose prose-sm prose-invert max-w-none">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath]}
                   rehypePlugins={[rehypeKatex]}
