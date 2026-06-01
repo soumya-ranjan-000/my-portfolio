@@ -223,10 +223,18 @@ export default function MarkdownEditor({
 
   const navigateToHeading = (id) => {
     const previewEl = previewRef.current;
+    const editorEl = textareaRef.current;
     if (!previewEl) return;
+
     const target = previewEl.querySelector(`#${safeCssEscape(id)}`);
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const line = Number(target.getAttribute('data-source-line'));
+      previewEl.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+
+      if (editorEl && Number.isFinite(line)) {
+        const lineHeight = parseFloat(getComputedStyle(editorEl).lineHeight) || 18;
+        editorEl.scrollTo({ top: Math.max(0, (line - 1) * lineHeight), behavior: 'smooth' });
+      }
     }
   };
 
@@ -471,21 +479,21 @@ export default function MarkdownEditor({
         {/* Editor Split Panels Grid */}
         <div className="grid md:grid-cols-[220px_1fr_1fr] gap-3 flex-grow h-[calc(100vh-85px)] overflow-hidden">
           {/* Navigation Sidebar */}
-          <aside className="hidden md:flex flex-col bg-dark-800/90 border border-white/5 rounded-xl overflow-hidden shadow-2xl h-full p-4">
+          <aside className="hidden md:flex flex-col bg-dark-800/90 border border-white/5 rounded-xl overflow-hidden shadow-2xl h-full max-h-full p-4">
             <div className="mb-4 border-b border-white/10 pb-3">
-              <h2 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold">Outline</h2>
-              <p className="mt-2 text-[11px] leading-snug text-slate-500">Jump to headings in the markdown preview.</p>
+              <h2 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold">Outline</h2>
+              <p className="mt-2 text-[10px] leading-snug text-slate-500">Jump to headings in the markdown preview.</p>
             </div>
             <div className="flex-1 overflow-y-auto pr-2 space-y-2">
               {outlineItems.length === 0 ? (
-                <p className="text-slate-500 text-sm">No headings found yet. Add `# Heading` or `## Subheading`.</p>
+                <p className="text-slate-500 text-[12px]">No headings found yet. Add `# Heading` or `## Subheading`.</p>
               ) : (
                 outlineItems.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => navigateToHeading(item.id)}
-                    className={`w-full text-left transition-colors rounded-xl px-3 py-2 ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} hover:bg-white/5 hover:text-white ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
+                    className={`w-full text-left transition-colors rounded-xl px-3 py-2 text-xs font-sans ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} hover:bg-white/5 hover:text-white ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
                   >
                     {item.text}
                   </button>
@@ -527,7 +535,7 @@ export default function MarkdownEditor({
             <div 
               ref={previewRef}
               onScroll={handlePreviewScroll}
-              className="p-6 flex-grow overflow-y-auto prose prose-invert prose-slate max-w-none bg-dark-900/10"
+              className="p-6 flex-grow overflow-y-auto prose prose-sm prose-invert prose-slate max-w-none bg-dark-900/10"
             >
               {value ? (
                 <ReactMarkdown
@@ -634,22 +642,22 @@ export default function MarkdownEditor({
       </div>
 
       {/* Editor Content Area */}
-      <div className="grid md:grid-cols-[220px_1fr_1fr] divide-x divide-white/5 h-[500px] overflow-hidden">
-        <aside className="hidden md:flex flex-col bg-dark-900/70 border-r border-white/5 p-4 overflow-y-auto space-y-3">
+      <div className="grid md:grid-cols-[220px_1fr_1fr] divide-x divide-white/5 h-[640px] md:h-[720px] overflow-hidden">
+        <aside className="hidden md:flex flex-col bg-dark-900/70 border-r border-white/5 p-4 overflow-y-auto space-y-3 max-h-full">
           <div>
-            <h2 className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold">Outline</h2>
-            <p className="mt-2 text-[11px] leading-snug text-slate-500">Tap to jump to headings in the preview.</p>
+            <h2 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold">Outline</h2>
+            <p className="mt-2 text-[10px] leading-snug text-slate-500">Tap to jump to headings in the preview.</p>
           </div>
           <div className="space-y-2">
             {outlineItems.length === 0 ? (
-              <p className="text-slate-500 text-sm">No headings yet. Add `# Heading` to build an outline.</p>
+              <p className="text-slate-500 text-[12px]">No headings yet. Add `# Heading` to build an outline.</p>
             ) : (
               outlineItems.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => navigateToHeading(item.id)}
-                  className={`w-full text-left transition-colors rounded-xl px-3 py-2 ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} hover:bg-white/5 hover:text-white ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
+                  className={`w-full text-left transition-colors rounded-xl px-3 py-2 text-xs font-sans ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} hover:bg-white/5 hover:text-white ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
                 >
                   {item.text}
                 </button>
@@ -674,7 +682,7 @@ export default function MarkdownEditor({
         <div 
           ref={previewRef}
           onScroll={handlePreviewScroll}
-          className={`p-6 h-full overflow-y-auto prose prose-invert prose-slate max-w-none bg-dark-900/20 ${!isPreview ? 'hidden md:block' : 'block'}`}
+          className={`p-6 h-full overflow-y-auto prose prose-sm prose-invert prose-slate max-w-none bg-dark-900/20 ${!isPreview ? 'hidden md:block' : 'block'}`}
         >
           {value ? (
             <ReactMarkdown
