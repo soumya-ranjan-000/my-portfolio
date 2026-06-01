@@ -364,7 +364,7 @@ function ProjectDetail() {
         className="min-h-[calc(100vh-5.5rem)] pt-20 pb-4 px-2 md:px-3"
       >
         <div className="w-full max-w-full mx-auto grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit sticky top-28 self-start max-h-[calc(100vh-180px)] overflow-y-auto">
+          <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit max-h-[calc(100vh-180px)] overflow-y-auto">
             <h3 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Page outline</h3>
             {outlineItems.length === 0 ? (
               <p className="text-slate-500 text-[12px]">Add headings to build the outline.</p>
