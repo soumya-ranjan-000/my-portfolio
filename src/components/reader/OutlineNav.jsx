@@ -86,35 +86,39 @@ export default function OutlineNav({ items, title = 'On this page', variant = 'd
   return (
     <>
       {variant === 'mobile' && (
-      <div className="sticky top-20 z-30 mb-4 lg:hidden">
-        <button
-          type="button"
-          onClick={() => setMobileOpen((open) => !open)}
-          className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-dark-800/95 px-4 py-3 text-sm font-semibold text-slate-200 shadow-lg backdrop-blur"
-        >
-          <span className="flex items-center gap-2">
-            <FaListUl size={13} /> {title}
-          </span>
-          <FaChevronDown
-            size={12}
-            className={`transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
-          />
-        </button>
-        {mobileOpen && (
-          <div className="mt-2 max-h-[45vh] overflow-y-auto rounded-xl border border-white/10 bg-dark-900/95 p-2 shadow-2xl backdrop-blur">
-            {outlineList}
+        <div className="mb-4 h-12 lg:hidden">
+          <div className="fixed left-3 right-3 top-20 z-30">
+            <button
+              type="button"
+              onClick={() => setMobileOpen((open) => !open)}
+              className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-dark-800/95 px-4 py-3 text-sm font-semibold text-slate-200 shadow-lg backdrop-blur"
+            >
+              <span className="flex items-center gap-2">
+                <FaListUl size={13} /> {title}
+              </span>
+              <FaChevronDown
+                size={12}
+                className={`transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            {mobileOpen && (
+              <div className="mt-2 max-h-[45vh] overflow-y-auto rounded-xl border border-white/10 bg-dark-900/95 p-2 shadow-2xl backdrop-blur">
+                {outlineList}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
       )}
 
       {variant === 'desktop' && (
       <aside
-        className={`hidden lg:block sticky top-24 self-start transition-all duration-300 ${
+        className={`hidden lg:block self-start transition-all duration-300 ${
           collapsed ? 'w-12' : 'w-56 xl:w-64'
         }`}
       >
-        <div className="max-h-[calc(100vh-8rem)] overflow-hidden rounded-xl border border-white/10 bg-dark-900/70 shadow-xl backdrop-blur">
+        <div className={`fixed top-24 max-h-[calc(100vh-8rem)] overflow-hidden rounded-xl border border-white/10 bg-dark-900/70 shadow-xl backdrop-blur transition-all duration-300 ${
+          collapsed ? 'w-12' : 'w-56 xl:w-64'
+        }`}>
           <div className="flex items-center justify-between border-b border-white/5 px-3 py-2.5">
             {!collapsed && (
               <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
