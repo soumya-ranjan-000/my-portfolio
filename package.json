@@ -11,6 +11,7 @@
     "@octokit/rest": "^22.0.1",
     "framer-motion": "^11.0.0",
     "gray-matter": "^4.0.3",
+    "katex": "^0.16.0",
     "mermaid": "^11.15.0",
     "prismjs": "^1.30.0",
     "react": "^18.2.0",
@@ -19,10 +20,10 @@
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
+    "react-router-dom": "^6.22.3",
     "rehype-katex": "^7.0.0",
-    "remark-math": "^6.0.0",
-    "katex": "^0.16.0",
-    "react-router-dom": "^6.22.3"
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.3",

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import { 
   FaBold, FaItalic, FaHeading, FaCode, FaListUl, FaListOl, 
@@ -621,7 +622,7 @@ export default function MarkdownEditor({
             >
               {value ? (
                 <ReactMarkdown
-                  remarkPlugins={[remarkMath]}
+                  remarkPlugins={[remarkMath, remarkGfm]}
                   rehypePlugins={[rehypeKatex]}
                   components={markdownComponents}
                 >
@@ -801,7 +802,7 @@ export default function MarkdownEditor({
         >
           {value ? (
             <ReactMarkdown
-              remarkPlugins={[remarkMath]}
+              remarkPlugins={[remarkMath, remarkGfm]}
               rehypePlugins={[rehypeKatex]}
               components={markdownComponents}
             >

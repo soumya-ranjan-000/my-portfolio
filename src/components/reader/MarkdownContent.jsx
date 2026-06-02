@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 
 import CodeBlock from '../CodeBlock';
@@ -149,7 +150,7 @@ export default function MarkdownContent({ content, components }) {
   return (
     <div className="prose prose-invert max-w-none font-sans text-slate-200 prose-p:text-slate-200 prose-li:text-slate-200 prose-headings:font-heading prose-headings:tracking-normal">
       <ReactMarkdown
-        remarkPlugins={[remarkMath]}
+        remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}
         components={components}
       >
