@@ -1,116 +1,13 @@
 import { useParams } from 'react-router-dom';
 import React, { useEffect, useMemo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import { projectsList } from "../data/projects";
 import { motion } from 'framer-motion';
 import { FaGithub, FaTimes, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
-import CodeBlock from '../components/CodeBlock';
 import NotebookEmbeds from '../components/NotebookEmbeds';
+import MarkdownContent, { createMarkdownComponents } from '../components/reader/MarkdownContent';
+import ReaderShell from '../components/reader/ReaderShell';
+import { extractMarkdownHeadings as parseMarkdownHeadings } from '../components/reader/markdownUtils';
 
 import { useCMS, fetchCMSContent } from '../hooks/useCMS';
-
-const slugify = (text) => {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9\-]/g, '');
-};
-
-const extractHeadingText = (children) => {
-  return React.Children.toArray(children)
-    .map((child) => {
-      if (typeof child === 'string') return child;
-      if (child && child.props && child.props.children) return extractHeadingText(child.props.children);
-      return '';
-    })
-    .join('');
-};
-
-const renderHeading = (level, className) => ({ node, children, ...props }) => {
-  const id = slugify(extractHeadingText(children));
-  return React.createElement(
-    `h${level}`,
-    { id, className, ...props },
-    children
-  );
-};
-
-const safeCssEscape = (value) => {
-  if (typeof CSS !== 'undefined' && CSS.escape) {
-    return CSS.escape(value);
-  }
-  return value.replace(/[^a-zA-Z0-9_-]/g, '-');
-};
-
-const extractMarkdownHeadings = (text) => {
-  const items = [];
-  const seenIds = {};
-  const lines = (text || '').split(/\r?\n/);
-  let inFencedCode = false;
-  let fenceMarker = '';
-  let previousLine = '';
-
-  const pushHeading = (level, rawText) => {
-    const textValue = rawText.trim();
-    if (!textValue) return;
-    let id = slugify(textValue.replace(/<[^>]+>/g, ''));
-    if (!id) return;
-    if (seenIds[id]) {
-      seenIds[id] += 1;
-      id = `${id}-${seenIds[id]}`;
-    } else {
-      seenIds[id] = 1;
-    }
-    items.push({ level, text: textValue, id });
-  };
-
-  for (const line of lines) {
-    const fencedMatch = line.match(/^([`~]{3,})(.*)$/);
-    if (fencedMatch) {
-      const markerChar = fencedMatch[1][0];
-      if (!inFencedCode) {
-        inFencedCode = true;
-        fenceMarker = markerChar;
-      } else if (markerChar === fenceMarker) {
-        inFencedCode = false;
-        fenceMarker = '';
-      }
-      previousLine = '';
-      continue;
-    }
-
-    if (inFencedCode) {
-      continue;
-    }
-
-    if (/^[ \t]{4,}/.test(line)) {
-      previousLine = '';
-      continue;
-    }
-
-    const atxMatch = line.match(/^ {0,3}(#{1,6})\s+(.*)$/);
-    if (atxMatch) {
-      pushHeading(atxMatch[1].length, atxMatch[2]);
-      previousLine = '';
-      continue;
-    }
-
-    const setextMatch = line.match(/^[ \t]*(=+|-+)[ \t]*$/);
-    if (setextMatch && previousLine.trim()) {
-      pushHeading(setextMatch[1].startsWith('=') ? 1 : 2, previousLine);
-      previousLine = '';
-      continue;
-    }
-
-    previousLine = line;
-  }
-
-  return items;
-};
 
 function ProjectDetail() {
   const { slug } = useParams();
@@ -120,37 +17,8 @@ function ProjectDetail() {
   const [loading, setLoading] = useState(true);
 
   const outlineItems = useMemo(() => {
-    const items = [];
-    const regex = /^ {0,3}(#{1,6})\s+(.+)$/gm;
-    const seenIds = {};
-    const textValue = content || '';
-
-    for (const match of textValue.matchAll(regex)) {
-      const level = match[1].length;
-      const text = match[2].trim();
-      if (!text) continue;
-
-      let id = slugify(text);
-      if (!id) continue;
-      if (seenIds[id]) {
-        seenIds[id] += 1;
-        id = `${id}-${seenIds[id]}`;
-      } else {
-        seenIds[id] = 1;
-      }
-
-      items.push({ level, text, id });
-    }
-
-    return items;
+    return parseMarkdownHeadings(content);
   }, [content]);
-
-  const navigateToHeading = (id) => {
-    const target = document.getElementById(safeCssEscape(id));
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   useEffect(() => {
     const loadProjectData = async () => {
@@ -238,183 +106,56 @@ function ProjectDetail() {
     );
   }
 
-  const markdownComponents = {
-    h1: renderHeading(1, 'text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2'),
-    h2: renderHeading(2, 'text-2xl font-semibold font-heading mt-6 mb-3 text-primary-400'),
-    h3: renderHeading(3, 'text-xl font-semibold font-heading mt-5 mb-2 text-secondary-400'),
-    h4: renderHeading(4, 'text-lg font-semibold mt-5 mb-2 text-slate-200'),
-    h5: renderHeading(5, 'text-base font-semibold mt-4 mb-2 text-slate-200'),
-    h6: renderHeading(6, 'text-sm font-semibold mt-4 mb-2 uppercase tracking-wide text-slate-400'),
-    p: ({ node, ...props }) => (
-      <p className="mb-4 text-slate-300 leading-relaxed tracking-wide text-sm md:text-base" {...props} />
-    ),
-    ul: ({ node, ...props }) => (
-      <ul className="list-disc list-inside mb-4 pl-2 text-slate-300 marker:text-primary-500 space-y-1 text-sm md:text-base" {...props} />
-    ),
-    ol: ({ node, ...props }) => (
-      <ol className="list-decimal list-inside mb-4 pl-2 text-slate-300 marker:text-secondary-500 space-y-1 text-sm md:text-base" {...props} />
-    ),
-    li: ({ node, ...props }) => (
-      <li className="mb-1 hover:text-slate-200 transition-colors" {...props} />
-    ),
-    strong: ({ node, ...props }) => (
-      <strong className="text-white font-bold" {...props} />
-    ),
-    blockquote: ({ node, ...props }) => (
-      <blockquote className="border-l-4 border-primary-500 bg-primary-500/5 px-5 py-3 rounded-r-xl my-4 italic text-slate-400 font-medium text-sm md:text-base" {...props} />
-    ),
-    hr: ({ node, ...props }) => (
-      <hr className="my-8 h-px border-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" {...props} />
-    ),
-    table: ({ node, ...props }) => (
-      <div className="overflow-x-auto my-6 border border-white/5 rounded-xl">
-        <table className="min-w-full divide-y divide-white/5" {...props} />
-      </div>
-    ),
-    thead: ({ node, ...props }) => <thead className="bg-white/3" {...props} />,
-    tbody: ({ node, ...props }) => <tbody className="divide-y divide-white/5" {...props} />,
-    tr: ({ node, ...props }) => <tr className="hover:bg-white/1 transition-colors" {...props} />,
-    th: ({ node, ...props }) => <th className="px-4 py-2 text-left text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-white/5" {...props} />,
-    td: ({ node, ...props }) => <td className="px-4 py-2.5 text-xs md:text-sm text-slate-300 font-medium" {...props} />,
-    pre: ({ node, children, ...props }) => {
-      const codeChild = React.Children.toArray(children)[0];
-      if (codeChild && codeChild.props) {
-        return (
-          <CodeBlock 
-            className={codeChild.props.className} 
-            inline={false}
-          >
-            {codeChild.props.children}
-          </CodeBlock>
-        );
-      }
-      return <pre {...props}>{children}</pre>;
-    },
-    code: ({ node, className, children, ...props }) => (
-      <CodeBlock inline={true} className={className} {...props}>
-        {children}
-      </CodeBlock>
-    ),
-    img: ({ node, ...props }) => (
-      <img
-        className="rounded-xl my-6 shadow-lg hover:shadow-primary-500/20 transition-all cursor-zoom-in border border-white/5 max-h-[450px] object-cover"
-        {...props}
-        onClick={() => setPopupImg(props.src)}
-        style={{ maxWidth: "100%" }}
-        alt={props.alt || 'Project asset'}
-      />
-    ),
-    a: ({ node, ...props }) => {
-      const href = props.href || '';
-      const children = props.children;
-
-      // YouTube short/long links
-      const ytMatch = href && href.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-
-      // Direct video files (mp4/webm/ogg)
-      if (href.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
-        return (
-          <video controls className="w-full rounded-xl my-6" src={href}>
-            Your browser does not support the video tag.
-          </video>
-        );
-      }
-
-      if (ytMatch) {
-        const id = ytMatch[1];
-        const src = `https://www.youtube.com/embed/${id}`;
-        return (
-          <div className="aspect-video rounded-xl overflow-hidden my-6 border border-white/10 shadow-lg">
-            <iframe src={src} title="YouTube video" allowFullScreen className="w-full h-full" frameBorder="0" />
-          </div>
-        );
-      }
-
-      const text = (Array.isArray(children) ? children.join('') : children) || '';
-      const shouldOpenAsVideo = /demo|watch|video/i.test(text) || /user-attachments|raw.githubusercontent.com/.test(href);
-
-      const handleClick = (e) => {
-        if (shouldOpenAsVideo) {
-          e.preventDefault();
-          setVideoModal(href);
-        }
-      };
-
-      return (
-        <a
-          className="text-primary-400 hover:text-primary-300 underline underline-offset-4 font-semibold"
-          href={href}
-          onClick={handleClick}
-          target={shouldOpenAsVideo ? undefined : '_blank'}
-          rel={shouldOpenAsVideo ? undefined : 'noopener noreferrer'}
-        >
-          {children}
-        </a>
-      );
-    }
-  };
-
   if (!project) return <div className='mt-20 text-center text-white'>Project not found</div>;
+
+  const readerMarkdownComponents = createMarkdownComponents({
+    accent: 'primary',
+    imageAlt: 'Project asset',
+    onImageClick: setPopupImg,
+    onVideoLink: setVideoModal,
+  });
 
   return (
     <>
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-[calc(100vh-5.5rem)] pt-20 pb-4 px-2 md:px-3"
+        className="min-h-[calc(100vh-5.5rem)] px-3 pb-10 pt-20 md:px-5"
       >
-        <div className="w-full max-w-full mx-auto grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="hidden lg:flex flex-col rounded-3xl border border-white/5 bg-dark-900/80 p-4 shadow-xl h-fit max-h-[calc(100vh-180px)] overflow-y-auto">
-            <h3 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold mb-3">Page outline</h3>
-            {outlineItems.length === 0 ? (
-              <p className="text-slate-500 text-[12px]">Add headings to build the outline.</p>
-            ) : (
-              <div className="space-y-2">
-                {outlineItems.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => navigateToHeading(item.id)}
-                    className={`w-full text-left rounded-2xl px-3 py-2 text-sm font-sans transition-colors duration-200 hover:bg-white/5 hover:text-white ${item.level === 1 ? 'text-slate-100 font-semibold' : 'text-slate-300'} ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
-                  >
-                    {item.text}
-                  </button>
-                ))}
-              </div>
-            )}
-          </aside>
-
-          <div className="glass-card w-full px-5 py-6 rounded-2xl md:px-7 border border-white/10 shadow-2xl overflow-hidden h-full">
-            {/* Header */}
-            <div className="mb-8 border-b border-white/10 pb-6">
-              <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">{project.title}</h1>
+        <ReaderShell
+          outlineItems={outlineItems}
+          outlineTitle="Project outline"
+          header={
+            <header className="border-b border-white/10 px-4 py-5 md:px-8 lg:px-10">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-400/80">
+                    Project brief
+                  </p>
+                  <h1 className="text-3xl font-heading font-bold leading-tight text-white md:text-4xl">
+                    {project.title}
+                  </h1>
+                </div>
               {project.github && (
                 <a
                   href={project.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-900 border border-white/10 hover:border-primary-500/50 hover:text-primary-400 transition-colors"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-dark-900/70 px-3 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-primary-500/50 hover:text-primary-400"
                 >
                   <FaGithub /> <span>View Source</span>
                 </a>
               )}
-            </div>
-
-            <div className="h-full overflow-y-auto pr-2">
-              <div className="prose prose-sm prose-invert max-w-none">
-                <ReactMarkdown
-                  remarkPlugins={[remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
-                  components={markdownComponents}
-                >
-                  {content}
-                </ReactMarkdown>
               </div>
+            </header>
+          }
+        >
+          <MarkdownContent content={content} components={readerMarkdownComponents} />
 
               <NotebookEmbeds item={project} accent="primary" />
 
               {project.video && (
-                <div className="mt-10">
+            <div className="mt-10">
                   <h3 className="text-2xl font-bold text-white mb-4">Demo Video</h3>
                   <div className="aspect-video rounded-xl overflow-hidden border border-white/10 shadow-lg">
                     <iframe
@@ -428,9 +169,7 @@ function ProjectDetail() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
+        </ReaderShell>
       </motion.section>
 
       {/* Image Popup */}
