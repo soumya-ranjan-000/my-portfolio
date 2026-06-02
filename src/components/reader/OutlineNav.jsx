@@ -50,35 +50,66 @@ export default function OutlineNav({ items, title = 'On this page', variant = 'd
     }
   };
 
-  const itemClass = (item) => {
-    const isActive = activeId === item.id;
-    const indent = item.level === 1 ? 'pl-3' : item.level === 2 ? 'pl-5' : 'pl-7';
+  const getOutlineStyle = (level, isActive) => {
+    if (level === 1) {
+      return {
+        label: 'H1',
+        button: isActive
+          ? 'border-primary-400 bg-primary-500/20 text-slate-50 ring-2 ring-primary-500/15'
+          : 'border-primary-400/40 bg-primary-500/10 text-slate-300 hover:border-primary-400/70 hover:bg-primary-500/15',
+        badge: 'bg-primary-500/20 text-primary-300 border-primary-500/30',
+        indent: '',
+      };
+    }
 
-    return [
-      'w-full rounded-lg border-l-2 py-1.5 pr-2 text-left text-xs leading-snug transition-colors',
-      indent,
-      isActive
-        ? 'border-primary-400 bg-primary-400/10 text-white'
-        : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-200',
-    ].join(' ');
+    if (level === 2) {
+      return {
+        label: 'H2',
+        button: isActive
+          ? 'border-secondary-400 bg-secondary-500/20 text-slate-50 ring-2 ring-secondary-500/15'
+          : 'border-secondary-400/30 bg-secondary-500/10 text-slate-300 hover:border-secondary-400/60 hover:bg-secondary-500/15',
+        badge: 'bg-secondary-500/20 text-secondary-300 border-secondary-500/30',
+        indent: 'ml-3',
+      };
+    }
+
+    return {
+      label: `H${level}`,
+      button: isActive
+        ? 'border-primary-400 bg-white/[0.08] text-slate-50 ring-2 ring-primary-500/10'
+        : 'border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:bg-white/[0.06] hover:text-slate-200',
+      badge: 'bg-white/5 text-slate-400 border-white/10',
+      indent: level === 3 ? 'ml-6' : 'ml-8',
+    };
   };
 
   const outlineList = (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {visibleItems.length === 0 ? (
         <p className="px-3 py-2 text-xs text-slate-500">Headings will appear here.</p>
       ) : (
-        visibleItems.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => navigateToHeading(item.id)}
-            className={itemClass(item)}
-            title={item.text}
-          >
-            <span className="line-clamp-2">{item.text}</span>
-          </button>
-        ))
+        visibleItems.map((item) => {
+          const isActive = activeId === item.id;
+          const style = getOutlineStyle(item.level, isActive);
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => navigateToHeading(item.id)}
+              className={`group w-full rounded-xl border px-3 py-2 text-left font-sans shadow-sm transition-all duration-200 ${style.indent} ${style.button}`}
+              title={item.text}
+            >
+              <span className="flex items-start gap-2">
+                <span className={`mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none ${style.badge}`}>
+                  {style.label}
+                </span>
+                <span className="line-clamp-2 text-xs font-semibold leading-snug">
+                  {item.text}
+                </span>
+              </span>
+            </button>
+          );
+        })
       )}
     </div>
   );

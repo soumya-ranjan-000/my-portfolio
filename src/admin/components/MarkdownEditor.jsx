@@ -6,7 +6,7 @@ import rehypeKatex from 'rehype-katex';
 import { 
   FaBold, FaItalic, FaHeading, FaCode, FaListUl, FaListOl, 
   FaQuoteLeft, FaLink, FaImage, FaVideo, FaEye, FaPen, FaYoutube, 
-  FaMinus, FaSpinner, FaExpand, FaCompress
+  FaMinus, FaSpinner, FaExpand, FaCompress, FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 import { useDropzone } from 'react-dropzone';
 import CodeBlock from '../../components/CodeBlock';
@@ -137,6 +137,7 @@ export default function MarkdownEditor({
   const [uploading, setUploading] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [previewPositions, setPreviewPositions] = useState([]);
+  const [isOutlineCollapsed, setIsOutlineCollapsed] = useState(false);
   const textareaRef = useRef(null);
   const previewRef = useRef(null);
   const activeScrollSourceRef = useRef(null);
@@ -325,7 +326,7 @@ export default function MarkdownEditor({
     const editorEl = textareaRef.current;
     if (editorEl && previewEl) {
       const scrollRatio = previewEl.scrollTop / (previewEl.scrollHeight - previewEl.clientHeight);
-      editorEl.scrollTop = scrollRatio * (editorEl.scrollHeight - editorEl.clientHeight);
+      editorEl.scrollTop = scrollRatio * (previewEl.scrollHeight - previewEl.clientHeight);
     }
 
     clearTimeout(previewEl.scrollTimeout);
@@ -525,39 +526,62 @@ export default function MarkdownEditor({
         </div>
 
         {/* Editor Split Panels Grid */}
-        <div className="grid md:grid-cols-[220px_1fr_1fr] gap-3 flex-grow h-[calc(100vh-85px)] overflow-hidden">
+        <div className={`grid gap-3 flex-grow h-[calc(100vh-85px)] overflow-hidden transition-all duration-300 ${isOutlineCollapsed ? 'md:grid-cols-[48px_1fr_1fr]' : 'md:grid-cols-[220px_1fr_1fr]'}`}>
           {/* Navigation Sidebar */}
-          <aside className="hidden md:flex flex-col bg-dark-800/90 border border-white/10 rounded-xl overflow-hidden shadow-2xl h-full max-h-full p-4">
-            <div className="mb-4 border-b border-white/10 pb-3">
-              <h2 className="font-heading text-sm font-bold text-slate-100">Document Outline</h2>
-              <p className="mt-1.5 text-[11px] leading-snug text-slate-500">Jump to headings in the markdown preview.</p>
-            </div>
-            <div className="flex-1 overflow-y-auto pr-2 space-y-2.5">
-              {outlineItems.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-3 py-4 text-center text-xs leading-relaxed text-slate-500">No headings found yet. Add `# Heading` or `## Subheading`.</p>
-              ) : (
-                outlineItems.map((item) => {
-                  const style = getOutlineStyle(item.level);
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => navigateToHeading(item.id)}
-                      className={`group w-full rounded-xl border px-3 py-2.5 text-left font-sans shadow-sm transition-all duration-200 ${style.indent} ${style.button}`}
-                    >
-                      <span className="flex items-start gap-2">
-                        <span className={`mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none ${style.badge}`}>
-                          {style.label}
-                        </span>
-                        <span className="line-clamp-2 text-sm font-semibold leading-snug">
-                          {item.text}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
+          <aside className={`hidden md:flex flex-col bg-dark-800/90 border border-white/10 rounded-xl overflow-hidden shadow-2xl h-full max-h-full transition-all duration-300 ${isOutlineCollapsed ? 'p-1.5 items-center' : 'p-4'}`}>
+            {isOutlineCollapsed ? (
+              <button
+                type="button"
+                onClick={() => setIsOutlineCollapsed(false)}
+                className="p-2 text-slate-400 hover:text-white bg-white/5 rounded-lg transition-colors mt-2"
+                title="Expand Outline"
+              >
+                <FaChevronRight size={14} />
+              </button>
+            ) : (
+              <>
+                <div className="mb-4 border-b border-white/10 pb-3 flex items-center justify-between">
+                  <div>
+                    <h2 className="font-heading text-sm font-bold text-slate-100">Document Outline</h2>
+                    <p className="mt-1.5 text-[11px] leading-snug text-slate-500">Jump to headings in the markdown preview.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsOutlineCollapsed(true)}
+                    className="p-1.5 text-slate-400 hover:text-white bg-white/5 rounded-lg transition-colors ml-2"
+                    title="Collapse Outline"
+                  >
+                    <FaChevronLeft size={12} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto pr-2 space-y-2.5">
+                  {outlineItems.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-3 py-4 text-center text-xs leading-relaxed text-slate-500">No headings found yet. Add `# Heading` or `## Subheading`.</p>
+                  ) : (
+                    outlineItems.map((item) => {
+                      const style = getOutlineStyle(item.level);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => navigateToHeading(item.id)}
+                          className={`group w-full rounded-xl border px-3 py-2.5 text-left font-sans shadow-sm transition-all duration-200 ${style.indent} ${style.button}`}
+                        >
+                          <span className="flex items-start gap-2">
+                            <span className={`mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none ${style.badge}`}>
+                              {style.label}
+                            </span>
+                            <span className="line-clamp-2 text-sm font-semibold leading-snug">
+                              {item.text}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
           </aside>
           {/* Left Column (Editor Textarea Card) */}
           <div className={`flex flex-col bg-dark-800/90 border border-white/5 rounded-xl overflow-hidden shadow-2xl h-full ${isPreview ? 'hidden md:flex' : 'flex'}`}>
@@ -700,38 +724,61 @@ export default function MarkdownEditor({
       </div>
 
       {/* Editor Content Area */}
-      <div className="grid md:grid-cols-[220px_1fr_1fr] divide-x divide-white/5 h-[640px] md:h-[720px] overflow-hidden">
-        <aside className="hidden md:flex flex-col bg-dark-900/70 border-r border-white/5 p-4 overflow-y-auto space-y-3 max-h-full">
-          <div className="border-b border-white/10 pb-3">
-            <h2 className="font-heading text-sm font-bold text-slate-100">Document Outline</h2>
-            <p className="mt-1.5 text-[11px] leading-snug text-slate-500">Tap to jump to headings in the preview.</p>
-          </div>
-          <div className="space-y-2.5">
-            {outlineItems.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-3 py-4 text-center text-xs leading-relaxed text-slate-500">No headings yet. Add `# Heading` to build an outline.</p>
-            ) : (
-              outlineItems.map((item) => {
-                const style = getOutlineStyle(item.level);
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => navigateToHeading(item.id)}
-                    className={`group w-full rounded-xl border px-3 py-2.5 text-left font-sans shadow-sm transition-all duration-200 ${style.indent} ${style.button}`}
-                  >
-                    <span className="flex items-start gap-2">
-                      <span className={`mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none ${style.badge}`}>
-                        {style.label}
-                      </span>
-                      <span className="line-clamp-2 text-sm font-semibold leading-snug">
-                        {item.text}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })
-            )}
-          </div>
+      <div className={`grid divide-x divide-white/5 h-[640px] md:h-[720px] overflow-hidden transition-all duration-300 ${isOutlineCollapsed ? 'md:grid-cols-[48px_1fr_1fr]' : 'md:grid-cols-[220px_1fr_1fr]'}`}>
+        <aside className={`hidden md:flex flex-col bg-dark-900/70 border-r border-white/5 overflow-y-auto max-h-full transition-all duration-300 ${isOutlineCollapsed ? 'p-1.5 items-center' : 'p-4'}`}>
+          {isOutlineCollapsed ? (
+            <button
+              type="button"
+              onClick={() => setIsOutlineCollapsed(false)}
+              className="p-2 text-slate-400 hover:text-white bg-white/5 rounded-lg transition-colors mt-2"
+              title="Expand Outline"
+            >
+              <FaChevronRight size={14} />
+            </button>
+          ) : (
+            <>
+              <div className="border-b border-white/10 pb-3 flex items-center justify-between">
+                <div>
+                  <h2 className="font-heading text-sm font-bold text-slate-100">Document Outline</h2>
+                  <p className="mt-1.5 text-[11px] leading-snug text-slate-500">Tap to jump to headings in the preview.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsOutlineCollapsed(true)}
+                  className="p-1.5 text-slate-400 hover:text-white bg-white/5 rounded-lg transition-colors ml-2"
+                  title="Collapse Outline"
+                >
+                  <FaChevronLeft size={12} />
+                </button>
+              </div>
+              <div className="space-y-2.5">
+                {outlineItems.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-3 py-4 text-center text-xs leading-relaxed text-slate-500">No headings yet. Add `# Heading` to build an outline.</p>
+                ) : (
+                  outlineItems.map((item) => {
+                    const style = getOutlineStyle(item.level);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => navigateToHeading(item.id)}
+                        className={`group w-full rounded-xl border px-3 py-2.5 text-left font-sans shadow-sm transition-all duration-200 ${style.indent} ${style.button}`}
+                      >
+                        <span className="flex items-start gap-2">
+                          <span className={`mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none ${style.badge}`}>
+                            {style.label}
+                          </span>
+                          <span className="line-clamp-2 text-sm font-semibold leading-snug">
+                            {item.text}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          )}
         </aside>
         {/* Editor Textarea Pane */}
         <div className={`p-4 h-full flex flex-col ${isPreview ? 'hidden md:flex' : 'flex'}`}>

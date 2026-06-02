@@ -19,10 +19,10 @@ export const createMarkdownComponents = ({
   const h2Text = accent === 'secondary' ? 'text-secondary-400' : 'text-primary-400';
 
   return {
-    h1: renderHeading(1, 'scroll-mt-28 mt-9 mb-4 border-b border-white/10 pb-2 font-heading text-3xl font-bold leading-tight text-slate-50 md:text-4xl'),
-    h2: renderHeading(2, `scroll-mt-28 mt-8 mb-3 font-heading text-2xl font-semibold leading-tight md:text-3xl ${h2Text}`),
-    h3: renderHeading(3, 'scroll-mt-28 mt-7 mb-3 font-heading text-xl font-semibold leading-snug text-slate-100 md:text-2xl'),
-    h4: renderHeading(4, 'scroll-mt-28 mt-6 mb-2 font-heading text-lg font-semibold leading-snug text-slate-100 md:text-xl'),
+    h1: renderHeading(1, 'scroll-mt-28 mt-9 mb-4 border-b border-white/10 pb-2 font-heading text-3xl font-bold leading-tight text-orange-500 md:text-4xl'),
+    h2: renderHeading(2, 'scroll-mt-28 mt-8 mb-3 font-heading text-2xl font-semibold leading-tight md:text-3xl text-primary-400'),
+    h3: renderHeading(3, 'scroll-mt-28 mt-7 mb-3 font-heading text-xl font-semibold leading-snug text-secondary-400 md:text-2xl'),
+    h4: renderHeading(4, 'scroll-mt-28 mt-6 mb-2 font-heading text-lg font-semibold leading-snug text-slate-200 md:text-xl'),
     h5: renderHeading(5, 'scroll-mt-28 mt-5 mb-2 font-heading text-base font-semibold leading-snug text-slate-200 md:text-lg'),
     h6: renderHeading(6, 'scroll-mt-28 mt-5 mb-2 font-heading text-sm font-semibold uppercase tracking-wide text-slate-400 md:text-base'),
     p: ({ node, ...props }) => (
