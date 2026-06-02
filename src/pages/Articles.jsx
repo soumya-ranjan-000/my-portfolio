@@ -169,7 +169,7 @@ export default function Articles() {
                 {/* Banner Header Image */}
                 {selectedArticle.coverImage && (
                     <div className="mb-5 max-h-[280px] w-full overflow-hidden rounded-xl border border-white/10 shadow-xl">
-                    <img src={selectedArticle.coverImage} alt={selectedArticle.title} className="w-full h-full object-cover" />
+                    <img src={selectedArticle.coverImage} alt={selectedArticle.title} className="w-full h-full object-contain bg-white" />
                   </div>
                 )}
 

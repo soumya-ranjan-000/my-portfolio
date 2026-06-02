@@ -19,29 +19,29 @@ export const createMarkdownComponents = ({
   const h2Text = accent === 'secondary' ? 'text-secondary-400' : 'text-primary-400';
 
   return {
-    h1: renderHeading(1, 'scroll-mt-28 text-2xl md:text-3xl font-bold font-heading mt-8 mb-4 text-orange-500 border-b border-white/5 pb-2'),
-    h2: renderHeading(2, `scroll-mt-28 text-xl md:text-2xl font-semibold font-heading mt-7 mb-3 ${h2Text}`),
-    h3: renderHeading(3, 'scroll-mt-28 text-lg md:text-xl font-semibold font-heading mt-6 mb-2 text-slate-200'),
-    h4: renderHeading(4, 'scroll-mt-28 text-base md:text-lg font-semibold mt-5 mb-2 text-slate-200'),
-    h5: renderHeading(5, 'scroll-mt-28 text-sm md:text-base font-semibold mt-4 mb-2 text-slate-200'),
-    h6: renderHeading(6, 'scroll-mt-28 text-xs md:text-sm font-semibold mt-4 mb-2 uppercase tracking-wide text-slate-400'),
+    h1: renderHeading(1, 'scroll-mt-28 mt-9 mb-4 border-b border-white/10 pb-2 font-heading text-3xl font-bold leading-tight text-slate-50 md:text-4xl'),
+    h2: renderHeading(2, `scroll-mt-28 mt-8 mb-3 font-heading text-2xl font-semibold leading-tight md:text-3xl ${h2Text}`),
+    h3: renderHeading(3, 'scroll-mt-28 mt-7 mb-3 font-heading text-xl font-semibold leading-snug text-slate-100 md:text-2xl'),
+    h4: renderHeading(4, 'scroll-mt-28 mt-6 mb-2 font-heading text-lg font-semibold leading-snug text-slate-100 md:text-xl'),
+    h5: renderHeading(5, 'scroll-mt-28 mt-5 mb-2 font-heading text-base font-semibold leading-snug text-slate-200 md:text-lg'),
+    h6: renderHeading(6, 'scroll-mt-28 mt-5 mb-2 font-heading text-sm font-semibold uppercase tracking-wide text-slate-400 md:text-base'),
     p: ({ node, ...props }) => (
-      <p className="mb-4 text-sm leading-7 text-slate-300 md:text-[15px]" {...props} />
+      <p className="mb-5 font-sans text-base leading-8 text-slate-200 md:text-[17px]" {...props} />
     ),
     ul: ({ node, ...props }) => (
-      <ul className={`mb-5 list-disc space-y-1.5 pl-5 text-sm leading-7 text-slate-300 md:text-[15px] ${markerText}`} {...props} />
+      <ul className={`mb-5 list-disc space-y-2 pl-6 font-sans text-base leading-8 text-slate-200 md:text-[17px] ${markerText}`} {...props} />
     ),
     ol: ({ node, ...props }) => (
-      <ol className={`mb-5 list-decimal space-y-1.5 pl-5 text-sm leading-7 text-slate-300 md:text-[15px] ${markerText}`} {...props} />
+      <ol className={`mb-5 list-decimal space-y-2 pl-6 font-sans text-base leading-8 text-slate-200 md:text-[17px] ${markerText}`} {...props} />
     ),
     li: ({ node, ...props }) => (
-      <li className="pl-1 transition-colors hover:text-slate-200" {...props} />
+      <li className="pl-1 text-slate-200 transition-colors hover:text-white" {...props} />
     ),
     strong: ({ node, ...props }) => (
-      <strong className="font-bold text-white" {...props} />
+      <strong className="font-bold text-slate-50" {...props} />
     ),
     blockquote: ({ node, ...props }) => (
-      <blockquote className={`my-5 rounded-r-xl border-l-4 px-5 py-3 text-sm font-medium italic leading-7 text-slate-400 md:text-[15px] ${quoteBorder}`} {...props} />
+      <blockquote className={`my-6 rounded-r-xl border-l-4 px-5 py-4 font-sans text-base font-medium italic leading-8 text-slate-300 md:text-[17px] ${quoteBorder}`} {...props} />
     ),
     hr: ({ node, ...props }) => (
       <hr className="my-8 h-px border-0 bg-white/10" {...props} />
@@ -54,8 +54,8 @@ export const createMarkdownComponents = ({
     thead: ({ node, ...props }) => <thead className="bg-white/[0.03]" {...props} />,
     tbody: ({ node, ...props }) => <tbody className="divide-y divide-white/5" {...props} />,
     tr: ({ node, ...props }) => <tr className="transition-colors hover:bg-white/[0.02]" {...props} />,
-    th: ({ node, ...props }) => <th className="border-b border-white/5 px-4 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-200" {...props} />,
-    td: ({ node, ...props }) => <td className="px-4 py-2.5 text-xs font-medium text-slate-300 md:text-sm" {...props} />,
+    th: ({ node, ...props }) => <th className="border-b border-white/5 px-4 py-2.5 text-left text-sm font-bold uppercase tracking-wider text-slate-100" {...props} />,
+    td: ({ node, ...props }) => <td className="px-4 py-3 text-sm font-medium leading-6 text-slate-200 md:text-base" {...props} />,
     pre: ({ node, children, ...props }) => {
       const codeChild = React.Children.toArray(children)[0];
       if (codeChild && codeChild.props) {
@@ -147,7 +147,7 @@ export const createMarkdownComponents = ({
 
 export default function MarkdownContent({ content, components }) {
   return (
-    <div className="prose prose-sm prose-invert max-w-none">
+    <div className="prose prose-invert max-w-none font-sans text-slate-200 prose-p:text-slate-200 prose-li:text-slate-200 prose-headings:font-heading prose-headings:tracking-normal">
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeKatex]}

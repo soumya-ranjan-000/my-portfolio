@@ -249,6 +249,33 @@ export default function MarkdownEditor({
 
   const outlineItems = useMemo(() => extractMarkdownHeadings(value), [value]);
 
+  const getOutlineStyle = (level) => {
+    if (level === 1) {
+      return {
+        label: 'H1',
+        button: 'border-primary-400/40 bg-primary-500/10 text-slate-50 hover:border-primary-400/70 hover:bg-primary-500/15',
+        badge: 'bg-primary-500/20 text-primary-300 border-primary-500/30',
+        indent: '',
+      };
+    }
+
+    if (level === 2) {
+      return {
+        label: 'H2',
+        button: 'border-secondary-400/30 bg-secondary-500/10 text-slate-100 hover:border-secondary-400/60 hover:bg-secondary-500/15',
+        badge: 'bg-secondary-500/20 text-secondary-300 border-secondary-500/30',
+        indent: 'ml-3',
+      };
+    }
+
+    return {
+      label: `H${level}`,
+      button: 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/[0.06] hover:text-slate-100',
+      badge: 'bg-white/5 text-slate-400 border-white/10',
+      indent: level === 3 ? 'ml-6' : 'ml-8',
+    };
+  };
+
   const navigateToHeading = (id) => {
     const previewEl = previewRef.current;
     const editorEl = textareaRef.current;
@@ -500,25 +527,35 @@ export default function MarkdownEditor({
         {/* Editor Split Panels Grid */}
         <div className="grid md:grid-cols-[220px_1fr_1fr] gap-3 flex-grow h-[calc(100vh-85px)] overflow-hidden">
           {/* Navigation Sidebar */}
-          <aside className="hidden md:flex flex-col bg-dark-800/90 border border-white/5 rounded-xl overflow-hidden shadow-2xl h-full max-h-full p-4">
+          <aside className="hidden md:flex flex-col bg-dark-800/90 border border-white/10 rounded-xl overflow-hidden shadow-2xl h-full max-h-full p-4">
             <div className="mb-4 border-b border-white/10 pb-3">
-              <h2 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold">Outline</h2>
-              <p className="mt-2 text-[10px] leading-snug text-slate-500">Jump to headings in the markdown preview.</p>
+              <h2 className="font-heading text-sm font-bold text-slate-100">Document Outline</h2>
+              <p className="mt-1.5 text-[11px] leading-snug text-slate-500">Jump to headings in the markdown preview.</p>
             </div>
-            <div className="flex-1 overflow-y-auto pr-2 space-y-2">
+            <div className="flex-1 overflow-y-auto pr-2 space-y-2.5">
               {outlineItems.length === 0 ? (
-                <p className="text-slate-500 text-[12px]">No headings found yet. Add `# Heading` or `## Subheading`.</p>
+                <p className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-3 py-4 text-center text-xs leading-relaxed text-slate-500">No headings found yet. Add `# Heading` or `## Subheading`.</p>
               ) : (
-                outlineItems.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => navigateToHeading(item.id)}
-                    className={`w-full text-left transition-colors rounded-xl px-3 py-2 text-xs font-sans ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} hover:bg-white/5 hover:text-white ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
-                  >
-                    {item.text}
-                  </button>
-                ))
+                outlineItems.map((item) => {
+                  const style = getOutlineStyle(item.level);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => navigateToHeading(item.id)}
+                      className={`group w-full rounded-xl border px-3 py-2.5 text-left font-sans shadow-sm transition-all duration-200 ${style.indent} ${style.button}`}
+                    >
+                      <span className="flex items-start gap-2">
+                        <span className={`mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none ${style.badge}`}>
+                          {style.label}
+                        </span>
+                        <span className="line-clamp-2 text-sm font-semibold leading-snug">
+                          {item.text}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })
               )}
             </div>
           </aside>
@@ -665,24 +702,34 @@ export default function MarkdownEditor({
       {/* Editor Content Area */}
       <div className="grid md:grid-cols-[220px_1fr_1fr] divide-x divide-white/5 h-[640px] md:h-[720px] overflow-hidden">
         <aside className="hidden md:flex flex-col bg-dark-900/70 border-r border-white/5 p-4 overflow-y-auto space-y-3 max-h-full">
-          <div>
-            <h2 className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold">Outline</h2>
-            <p className="mt-2 text-[10px] leading-snug text-slate-500">Tap to jump to headings in the preview.</p>
+          <div className="border-b border-white/10 pb-3">
+            <h2 className="font-heading text-sm font-bold text-slate-100">Document Outline</h2>
+            <p className="mt-1.5 text-[11px] leading-snug text-slate-500">Tap to jump to headings in the preview.</p>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {outlineItems.length === 0 ? (
-              <p className="text-slate-500 text-[12px]">No headings yet. Add `# Heading` to build an outline.</p>
+              <p className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-3 py-4 text-center text-xs leading-relaxed text-slate-500">No headings yet. Add `# Heading` to build an outline.</p>
             ) : (
-              outlineItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => navigateToHeading(item.id)}
-                  className={`w-full text-left transition-colors rounded-xl px-3 py-2 text-xs font-sans ${item.level === 1 ? 'text-white font-semibold' : 'text-slate-300'} hover:bg-white/5 hover:text-white ${item.level === 2 ? 'pl-5' : item.level === 3 ? 'pl-8' : 'pl-10'}`}
-                >
-                  {item.text}
-                </button>
-              ))
+              outlineItems.map((item) => {
+                const style = getOutlineStyle(item.level);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => navigateToHeading(item.id)}
+                    className={`group w-full rounded-xl border px-3 py-2.5 text-left font-sans shadow-sm transition-all duration-200 ${style.indent} ${style.button}`}
+                  >
+                    <span className="flex items-start gap-2">
+                      <span className={`mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none ${style.badge}`}>
+                        {style.label}
+                      </span>
+                      <span className="line-clamp-2 text-sm font-semibold leading-snug">
+                        {item.text}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })
             )}
           </div>
         </aside>

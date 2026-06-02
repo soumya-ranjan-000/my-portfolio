@@ -9,7 +9,7 @@ export default function OutlineNav({ items, title = 'On this page', variant = 'd
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const visibleItems = useMemo(
-    () => items.filter((item) => item.level <= 3),
+    () => items.filter((item) => item.level <= 2),
     [items]
   );
 
