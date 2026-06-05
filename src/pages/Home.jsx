@@ -5,7 +5,7 @@ function Home() {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section className="w-full">
+      <section className="w-full min-h-screen">
         <HeroSection />
       </section>
 

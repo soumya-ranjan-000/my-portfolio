@@ -72,7 +72,7 @@ function MainContentLayout() {
   return (
     <div className="relative z-10 flex flex-col min-h-screen w-full">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-grow container mx-auto px-4 py-8 pt-16 sm:px-6 lg:px-8">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />

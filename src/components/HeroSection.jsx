@@ -6,10 +6,10 @@ function HeroSection() {
     const [text] = useState("Soumya");
 
     return (
-        <div className="relative flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 pt-28 pb-20 max-w-6xl mx-auto z-10 px-4">
+        <div className="relative flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 pt-16 pb-20 min-h-[calc(100vh-7rem)] max-w-6xl mx-auto z-10 px-4">
             
             {/* Background Image with Black-and-White fading gradient overlay */}
-            <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 h-full overflow-hidden pointer-events-none z-0 opacity-75">
+            <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 h-full overflow-hidden pointer-events-none z-0 opacity-50">
                 <img 
                     src="/images/profile_ai.png" 
                     alt="Background Portrait" 
@@ -21,9 +21,9 @@ function HeroSection() {
             </div>
 
             {/* Left Column: Intro Text */}
-            <div className="flex flex-col items-center md:items-start text-center md:text-left md:w-7/12 relative z-10">
+            <div className="flex flex-col items-center md:items-start text-center md:text-left md:w-7/12 relative z-10 max-w-xl">
                 {/* Background glow behind text */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary-500/5 rounded-full blur-[120px] -z-10" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] h-[360px] bg-white/5 rounded-full blur-[120px] -z-10" />
 
                 {/* Intro Badge */}
                 <motion.div
@@ -32,7 +32,7 @@ function HeroSection() {
                     transition={{ duration: 0.5 }}
                     className="mb-6"
                 >
-                    <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-primary-400 text-sm font-medium backdrop-blur-sm">
+                    <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-slate-200 text-sm font-medium backdrop-blur-sm">
                         👋 Welcome to my portfolio
                     </span>
                 </motion.div>
@@ -42,9 +42,9 @@ function HeroSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
-                    className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 text-white leading-tight"
+                    className="text-4xl md:text-6xl lg:text-7xl hero-heading mb-6 leading-tight"
                 >
-                    Hi, I'm <span className="gradient-text">{text}</span>
+                    Hi, I'm <span className="hero-heading">{text}</span>
                 </motion.h1>
 
                 {/* Subheading / Typing Effect */}
@@ -52,7 +52,7 @@ function HeroSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
-                    className="text-lg md:text-xl text-slate-400 mb-10 h-12 font-light max-w-lg"
+                    className="text-lg md:text-xl hero-subtitle mb-10 font-light max-w-lg"
                 >
                     <TypingEffect text=" A QA Automation Engineer & SDET building modern systems to ensure quality." />
                 </motion.div>
@@ -64,7 +64,7 @@ function HeroSection() {
                     transition={{ delay: 0.4, duration: 0.5 }}
                     className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
                 >
-                    <Link to="/projects" className="btn-primary text-center">
+                    <Link to="/projects" className="btn-monochrome text-center">
                         View My Work
                     </Link>
                     <Link to="/contact" className="btn-outline text-center">
