@@ -1,74 +1,86 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-// type animation removed
-// Actually, let's keep the custom typing logic or simplify it. The previous one was fine, let's just style it better.
 import { useState, useEffect } from 'react';
 
 function HeroSection() {
     const [text] = useState("Soumya");
 
     return (
-        <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center z-10">
-            {/* Background enhancement specific to Hero */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-500/10 rounded-full blur-[100px] -z-10" />
+        <div className="relative flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 pt-28 pb-20 max-w-6xl mx-auto z-10 px-4">
+            
+            {/* Background Image with Black-and-White fading gradient overlay */}
+            <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 h-full overflow-hidden pointer-events-none z-0 opacity-75">
+                <img 
+                    src="/images/profile_ai.png" 
+                    alt="Background Portrait" 
+                    className="w-full h-full object-cover object-center filter grayscale contrast-125 brightness-100 scale-100 transition-all duration-700"
+                />
+                {/* Fading gradients to blend the image edges seamlessly into the black page background */}
+                <div className="absolute left-0 top-0 bottom-0 w-1/3 bg-gradient-to-r from-black to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-black to-transparent" />
+            </div>
 
-            {/* Intro Badge */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mb-6"
-            >
-                <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-primary-400 text-sm font-medium backdrop-blur-sm">
-                    👋 Welcome to my portfolio
-                </span>
-            </motion.div>
+            {/* Left Column: Intro Text */}
+            <div className="flex flex-col items-center md:items-start text-center md:text-left md:w-7/12 relative z-10">
+                {/* Background glow behind text */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary-500/5 rounded-full blur-[120px] -z-10" />
 
-            {/* Main Heading */}
-            <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-5xl md:text-7xl font-heading font-bold mb-6 text-white leading-tight"
-            >
-                Hi, I'm <span className="gradient-text">{text}</span>
-            </motion.h1>
+                {/* Intro Badge */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="mb-6"
+                >
+                    <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-primary-400 text-sm font-medium backdrop-blur-sm">
+                        👋 Welcome to my portfolio
+                    </span>
+                </motion.div>
 
-            {/* Subheading / Typing Effect */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="text-xl md:text-2xl text-slate-400 mb-10 h-8 font-light"
-            >
-                <TypingEffect text=" A QA Automation Engineer & SDET building modern frameworks." />
-            </motion.div>
+                {/* Main Heading */}
+                <motion.h1
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                    className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 text-white leading-tight"
+                >
+                    Hi, I'm <span className="gradient-text">{text}</span>
+                </motion.h1>
 
-            {/* CTA Buttons */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                className="flex flex-col sm:flex-row gap-4"
-            >
-                <Link to="/projects" className="btn-primary">
-                    View My Work
-                </Link>
-                <Link to="/contact" className="btn-outline">
-                    Contact Me
-                </Link>
-            </motion.div>
+                {/* Subheading / Typing Effect */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                    className="text-lg md:text-xl text-slate-400 mb-10 h-12 font-light max-w-lg"
+                >
+                    <TypingEffect text=" A QA Automation Engineer & SDET building modern frameworks." />
+                </motion.div>
+
+                {/* CTA Buttons */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                    className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
+                >
+                    <Link to="/projects" className="btn-primary text-center">
+                        View My Work
+                    </Link>
+                    <Link to="/contact" className="btn-outline text-center">
+                        Contact Me
+                    </Link>
+                </motion.div>
+            </div>
+
+            {/* Right Column: Empty space so text layout remains balanced with background image */}
+            <div className="hidden md:block md:w-5/12 h-64 pointer-events-none" />
 
             {/* Floating Elements (Decorative) */}
             <motion.div
                 animate={{ y: [0, -20, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-20 right-[10%] w-16 h-16 bg-white/5 backdrop-blur-md border border-primary-400/30 rounded-2xl rotate-12 -z-10 hidden md:block"
-            />
-            <motion.div
-                animate={{ y: [0, 20, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-20 left-[10%] w-20 h-20 bg-white/5 backdrop-blur-md border border-secondary-400/30 rounded-full -z-10 hidden md:block"
+                className="absolute top-24 left-[5%] w-10 h-10 bg-white/5 backdrop-blur-md border border-primary-400/20 rounded-xl rotate-12 -z-10 hidden lg:block"
             />
         </div>
     );
@@ -79,7 +91,6 @@ const TypingEffect = ({ text, speed = 50 }) => {
     const [displayed, setDisplayed] = useState('');
 
     useEffect(() => {
-        // Reset when text changes
         setDisplayed('');
         let i = 0;
         const interval = setInterval(() => {

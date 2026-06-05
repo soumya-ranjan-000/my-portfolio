@@ -7,7 +7,7 @@
 
 @layer base {
   body {
-    @apply bg-dark-900 text-slate-200 font-sans antialiased overflow-x-hidden;
+    @apply bg-black text-slate-200 font-sans antialiased overflow-x-hidden;
   }
 
   h1,
