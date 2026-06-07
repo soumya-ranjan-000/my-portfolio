@@ -10,7 +10,7 @@ function Home() {
       </section>
 
       {/* Award Badges (Will redesign next) */}
-      <section className="py-8">
+      <section className="pt-4 pb-14">
         <h2 className="text-3xl font-heading font-bold text-center mb-8 text-white">
           <span className="gradient-text">Certifications & Awards</span>
         </h2>

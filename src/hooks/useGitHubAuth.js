@@ -76,14 +76,15 @@ export function useGitHubAuth() {
     window.location.href = `https://github.com/login/oauth/authorize?${params}`;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     const currentToken = token || localStorage.getItem(TOKEN_KEY);
 
-    revokeGitHubToken(currentToken);
+    await revokeGitHubToken(currentToken);
     clearSameOriginAuthFootprint();
     setToken(null);
     setUser(null);
     setIsAuthorized(false);
+    window.location.replace('/');
   }, [token]);
 
   const saveToken = useCallback((newToken) => {
@@ -93,3 +94,4 @@ export function useGitHubAuth() {
 
   return { token, user, loading, isAuthorized, login, logout, saveToken };
 }
+
