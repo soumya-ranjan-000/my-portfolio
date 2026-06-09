@@ -9,7 +9,7 @@ function HeroSection() {
         <div className="relative flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 pt-16 pb-20 min-h-[calc(100vh-7rem)] max-w-6xl mx-auto z-10 px-4">
             
             {/* Background Image with Black-and-White fading gradient overlay */}
-            <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 h-full overflow-hidden pointer-events-none z-0 opacity-50">
+            <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 h-full overflow-hidden pointer-events-none z-0 opacity-70">
                 <img 
                     src="/images/hero.png" 
                     alt="Background Portrait" 
