@@ -11,7 +11,7 @@ function HeroSection() {
             {/* Background Image with Black-and-White fading gradient overlay */}
             <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 h-full overflow-hidden pointer-events-none z-0 opacity-50">
                 <img 
-                    src="/images/profile_ai.png" 
+                    src="/images/hero.png" 
                     alt="Background Portrait" 
                     className="w-full h-full object-cover object-center filter grayscale contrast-125 brightness-100 scale-100 transition-all duration-700"
                 />
