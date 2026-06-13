@@ -6,12 +6,24 @@ import { safeCssEscape } from './markdownUtils';
 export default function OutlineNav({ items, title = 'On this page', variant = 'desktop', accent }) {
   const [activeId, setActiveId] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Filter items up to level 3 (H1, H2, H3)
   const visibleItems = useMemo(
     () => items.filter((item) => item.level <= 3),
     [items]
   );
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+
+    if (!q) return visibleItems;
+
+    return visibleItems.filter((item) => {
+      const haystack = `${item.text || ''} ${item.id || ''}`.toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [searchQuery, visibleItems]);
 
   // Find the minimum heading level to compute relative indentations
   const minLevel = useMemo(() => {
@@ -56,14 +68,41 @@ export default function OutlineNav({ items, title = 'On this page', variant = 'd
     }
   };
 
+  const highlightMatch = (text, query) => {
+    if (!query.trim()) return text;
+
+    const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escaped})`, 'ig');
+
+    return text.split(regex).map((part, index) => {
+      if (part.toLowerCase() === query.trim().toLowerCase()) {
+        return (
+          <mark key={`${part}-${index}`} className="rounded bg-amber-400/20 px-0.5 text-amber-100">
+            {part}
+          </mark>
+        );
+      }
+      return <span key={`${part}-${index}`}>{part}</span>;
+    });
+  };
+
   const activeIndicatorColor = accent === 'secondary' ? 'bg-secondary-500' : 'bg-primary-500';
 
   const outlineList = (
     <div className="relative border-l border-white/10 space-y-3 py-1 ml-1.5 text-left">
-      {visibleItems.length === 0 ? (
-        <p className="pl-4 py-2 text-xs text-slate-500">No headings on this page.</p>
+      <div className="px-3 pb-3">
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search headings..."
+          className="w-full rounded-xl border border-white/10 bg-dark-900/90 px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-primary-400/60 focus:outline-none focus:ring-1 focus:ring-primary-400/30"
+        />
+      </div>
+      {filteredItems.length === 0 ? (
+        <p className="px-4 py-2 text-xs text-slate-500">No headings match your search.</p>
       ) : (
-        visibleItems.map((item) => {
+        filteredItems.map((item) => {
           const isActive = activeId === item.id;
           const relativeLevel = item.level - minLevel;
           
@@ -87,7 +126,7 @@ export default function OutlineNav({ items, title = 'On this page', variant = 'd
                 <span className={`absolute left-[-1.5px] top-0 bottom-0 w-[3px] rounded-full ${activeIndicatorColor}`} />
               )}
               <span className="line-clamp-2 leading-relaxed">
-                {item.text}
+                {highlightMatch(item.text, searchQuery)}
               </span>
             </button>
           );

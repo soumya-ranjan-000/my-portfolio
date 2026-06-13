@@ -141,10 +141,15 @@ export default function CodeBlock({ className, children, inline, accent }) {
     );
   }
 
-  // Extract language key
-  const language = className ? className.replace(/language-/, '') : '';
-  const codeString = String(children).replace(/\n$/, '');
-  const isMermaid = language.toLowerCase() === 'mermaid';
+  // Extract language key and convert to lowercase for case-insensitivity support
+  const rawLanguage = className ? className.replace(/language-/, '') : '';
+  const language = rawLanguage.toLowerCase();
+  const codeString = React.Children.toArray(children)
+    .map((child) => (typeof child === 'string' ? child : String(child)))
+    .join('')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n$/, '');
+  const isMermaid = language === 'mermaid' || className?.toLowerCase().includes('mermaid');
 
   const handleCopy = async () => {
     try {
