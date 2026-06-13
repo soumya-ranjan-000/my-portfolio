@@ -23,9 +23,13 @@ export default function ProjectEditor() {
 
   const cms = storageManager.getStorageCMS(activeTarget, token);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!routeSlug);
   const [saving, setSaving] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
+  const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState(null);
 
   // Form Fields
   const [title, setTitle] = useState('');
@@ -46,6 +50,63 @@ export default function ProjectEditor() {
     }
   }, [title, isEdit, routeSlug]);
 
+  const applyCMSData = (data) => {
+    setTitle(data.title || '');
+    setSlug(data.slug || '');
+    setDescription(data.description || '');
+    setImage(data.image || '');
+    setGithub(data.github || '');
+    setDemo(data.demo || '');
+    setStatus(data.status || 'published');
+    setTags(data.tags || '');
+    setNotebooks(data.notebooks || []);
+    setContent(data.content || '');
+  };
+
+  // Check for unsaved draft for NEW projects
+  useEffect(() => {
+    if (!routeSlug) {
+      const draftKey = 'project-draft-new';
+      const savedDraft = localStorage.getItem(draftKey);
+      
+      const emptyData = {
+        title: '',
+        slug: '',
+        description: '',
+        image: '',
+        github: '',
+        demo: '',
+        status: 'published',
+        tags: '',
+        notebooks: [],
+        content: ''
+      };
+      setOriginalData(emptyData);
+
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setTitle(draft.title || '');
+          setSlug(draft.slug || '');
+          setDescription(draft.description || '');
+          setImage(draft.image || '');
+          setGithub(draft.github || '');
+          setDemo(draft.demo || '');
+          setStatus(draft.status || 'published');
+          setTags(draft.tags || '');
+          setNotebooks(draft.notebooks || []);
+          setContent(draft.content || '');
+          setDraftSavedAt(draft.savedAt);
+          setHasUnsavedDraft(true);
+          toast.success('Restored unsaved draft from browser cache.');
+        } catch (e) {
+          console.error('Failed to parse draft:', e);
+        }
+      }
+      setIsInitialized(true);
+    }
+  }, [routeSlug]);
+
   // Load existing data if in Edit Mode
   useEffect(() => {
     if (routeSlug && token) {
@@ -58,33 +119,161 @@ export default function ProjectEditor() {
           const jsonFile = await cms.getFile(jsonPath);
           const mdFile = await cms.getFile(mdPath);
 
+          let cmsData = {
+            title: '',
+            slug: '',
+            description: '',
+            image: '',
+            github: '',
+            demo: '',
+            status: 'published',
+            tags: '',
+            notebooks: [],
+            content: ''
+          };
+
           if (jsonFile) {
             const data = JSON.parse(jsonFile.content);
-            setTitle(data.title || '');
-            setSlug(data.slug || '');
-            setDescription(data.description || '');
-            setImage(data.image || '');
-            setGithub(data.github || '');
-            setDemo(data.demo || '');
-            setStatus(data.status || 'published');
-            setTags(data.tags ? data.tags.join(', ') : '');
-            setNotebooks(Array.isArray(data.notebooks) ? data.notebooks : []);
+            cmsData.title = data.title || '';
+            cmsData.slug = data.slug || '';
+            cmsData.description = data.description || '';
+            cmsData.image = data.image || '';
+            cmsData.github = data.github || '';
+            cmsData.demo = data.demo || '';
+            cmsData.status = data.status || 'published';
+            cmsData.tags = data.tags ? data.tags.join(', ') : '';
+            cmsData.notebooks = Array.isArray(data.notebooks) ? data.notebooks : [];
             setIsEdit(true);
           }
 
           if (mdFile) {
-            setContent(mdFile.content);
+            cmsData.content = mdFile.content;
+          }
+
+          setOriginalData(cmsData);
+
+          const draftKey = `project-draft-${routeSlug}`;
+          const savedDraft = localStorage.getItem(draftKey);
+          if (savedDraft) {
+            try {
+              const draft = JSON.parse(savedDraft);
+              setTitle(draft.title || '');
+              setSlug(draft.slug || '');
+              setDescription(draft.description || '');
+              setImage(draft.image || '');
+              setGithub(draft.github || '');
+              setDemo(draft.demo || '');
+              setStatus(draft.status || 'published');
+              setTags(draft.tags || '');
+              setNotebooks(draft.notebooks || []);
+              setContent(draft.content || '');
+              setDraftSavedAt(draft.savedAt);
+              setHasUnsavedDraft(true);
+              toast.success('Restored unsaved draft from browser cache.');
+            } catch (e) {
+              console.error('Failed to parse draft:', e);
+              applyCMSData(cmsData);
+            }
+          } else {
+            applyCMSData(cmsData);
           }
         } catch (err) {
           console.error(err);
           toast.error('Failed to load project details');
         } finally {
           setLoading(false);
+          setIsInitialized(true);
         }
       };
       loadProject();
     }
   }, [routeSlug, token]);
+
+  // Auto-save changes to localStorage
+  useEffect(() => {
+    if (loading || !isInitialized) return;
+
+    const draftKey = routeSlug ? `project-draft-${routeSlug}` : 'project-draft-new';
+    
+    const isDirty = originalData && (
+      title !== originalData.title ||
+      slug !== originalData.slug ||
+      description !== originalData.description ||
+      image !== originalData.image ||
+      github !== originalData.github ||
+      demo !== originalData.demo ||
+      status !== originalData.status ||
+      tags !== originalData.tags ||
+      content !== originalData.content ||
+      JSON.stringify(notebooks) !== JSON.stringify(originalData.notebooks)
+    );
+
+    if (isDirty) {
+      const draftData = {
+        title,
+        slug,
+        description,
+        image,
+        github,
+        demo,
+        status,
+        tags,
+        notebooks,
+        content,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
+      setHasUnsavedDraft(true);
+      setDraftSavedAt(draftData.savedAt);
+    } else {
+      localStorage.removeItem(draftKey);
+      setHasUnsavedDraft(false);
+    }
+  }, [title, slug, description, image, github, demo, status, tags, notebooks, content, loading, isInitialized, routeSlug, originalData]);
+
+  const handleRevertToSaved = () => {
+    if (originalData) {
+      applyCMSData(originalData);
+      const draftKey = routeSlug ? `project-draft-${routeSlug}` : 'project-draft-new';
+      localStorage.removeItem(draftKey);
+      setHasUnsavedDraft(false);
+      setDraftSavedAt(null);
+      toast.success('Reverted to saved version');
+    }
+  };
+
+  const handleDiscardDraft = () => {
+    const draftKey = routeSlug ? `project-draft-${routeSlug}` : 'project-draft-new';
+    localStorage.removeItem(draftKey);
+    setHasUnsavedDraft(false);
+    setDraftSavedAt(null);
+    
+    if (originalData) {
+      applyCMSData(originalData);
+    } else {
+      setTitle('');
+      setSlug('');
+      setDescription('');
+      setImage('');
+      setGithub('');
+      setDemo('');
+      setStatus('published');
+      setTags('');
+      setNotebooks([]);
+      setContent('');
+    }
+    toast.success('Unsaved draft discarded');
+  };
+
+  const formatDraftTime = (isoString) => {
+    if (!isoString) return '';
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' on ' + date.toLocaleDateString();
+    } catch (e) {
+      return '';
+    }
+  };
 
   // Upload primary banner
   const onImageDrop = async (files) => {
@@ -161,6 +350,13 @@ export default function ProjectEditor() {
         await cms.syncDirectoryIndex('data/projects');
       }
 
+      // Clear unsaved draft from localStorage
+      const draftKey = routeSlug ? `project-draft-${routeSlug}` : 'project-draft-new';
+      localStorage.removeItem(draftKey);
+      if (!routeSlug) {
+        localStorage.removeItem('project-draft-new');
+      }
+
       toast.success('Project saved successfully!');
       setTimeout(() => navigate('/admin'), 1500);
     } catch (err) {
@@ -202,6 +398,31 @@ export default function ProjectEditor() {
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-6">
+            {hasUnsavedDraft && (
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-300 px-5 py-3 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400 font-bold">⚠️ Draft Restored:</span>
+                  <span>You have unsaved changes from browser cache (saved at {formatDraftTime(draftSavedAt)}).</span>
+                </div>
+                <div className="flex items-center gap-3 self-end sm:self-auto text-xs sm:text-sm">
+                  <button
+                    type="button"
+                    onClick={handleRevertToSaved}
+                    className="px-3 py-1.5 rounded-lg border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 font-semibold transition-all duration-200"
+                  >
+                    Revert to Saved
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold border border-transparent transition-all duration-200"
+                  >
+                    Discard Draft
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Form Card */}
             <div className="glass-card p-6 md:p-8 space-y-6 border border-white/5 shadow-xl">
               {/* Title & Slug */}

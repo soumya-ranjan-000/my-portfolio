@@ -26,6 +26,10 @@ export default function ArticleEditor() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
+  const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState(null);
 
   // Form Fields
   const [title, setTitle] = useState('');
@@ -45,6 +49,52 @@ export default function ArticleEditor() {
     }
   }, [title, isEdit, routeSlug]);
 
+  const applyCMSData = (data) => {
+    setTitle(data.title || '');
+    setSlug(data.slug || '');
+    setExcerpt(data.excerpt || '');
+    setCoverImage(data.coverImage || '');
+    setStatus(data.status || 'published');
+    setTags(data.tags || '');
+    setPublishDate(data.publishDate ? data.publishDate.split('T')[0] : new Date().toISOString().split('T')[0]);
+    setNotebooks(Array.isArray(data.notebooks) ? data.notebooks : []);
+    setContent(data.content || '');
+  };
+
+  // Check for unsaved draft for NEW articles
+  useEffect(() => {
+    if (!routeSlug) {
+      const draftKey = 'article-draft-new';
+      const savedDraft = localStorage.getItem(draftKey);
+
+      const emptyData = {
+        title: '',
+        slug: '',
+        excerpt: '',
+        coverImage: '',
+        status: 'published',
+        tags: '',
+        publishDate: new Date().toISOString().split('T')[0],
+        notebooks: [],
+        content: ''
+      };
+      setOriginalData(emptyData);
+
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          applyCMSData({ ...emptyData, ...draft });
+          setDraftSavedAt(draft.savedAt);
+          setHasUnsavedDraft(true);
+          toast.success('Restored unsaved article draft from browser cache.');
+        } catch (e) {
+          console.error('Failed to parse article draft:', e);
+        }
+      }
+      setIsInitialized(true);
+    }
+  }, [routeSlug]);
+
   // Load existing data if in Edit Mode
   useEffect(() => {
     if (routeSlug && token) {
@@ -57,32 +107,148 @@ export default function ArticleEditor() {
           const jsonFile = await cms.getFile(jsonPath);
           const mdFile = await cms.getFile(mdPath);
 
+          const cmsData = {
+            title: '',
+            slug: '',
+            excerpt: '',
+            coverImage: '',
+            status: 'published',
+            tags: '',
+            publishDate: new Date().toISOString().split('T')[0],
+            notebooks: [],
+            content: ''
+          };
+
           if (jsonFile) {
             const data = JSON.parse(jsonFile.content);
-            setTitle(data.title || '');
-            setSlug(data.slug || '');
-            setExcerpt(data.excerpt || '');
-            setCoverImage(data.coverImage || '');
-            setStatus(data.status || 'published');
-            setTags(data.tags ? data.tags.join(', ') : '');
-            setPublishDate(data.publishDate ? data.publishDate.split('T')[0] : new Date().toISOString().split('T')[0]);
-            setNotebooks(Array.isArray(data.notebooks) ? data.notebooks : []);
+            cmsData.title = data.title || '';
+            cmsData.slug = data.slug || '';
+            cmsData.excerpt = data.excerpt || '';
+            cmsData.coverImage = data.coverImage || '';
+            cmsData.status = data.status || 'published';
+            cmsData.tags = data.tags ? data.tags.join(', ') : '';
+            cmsData.publishDate = data.publishDate ? data.publishDate.split('T')[0] : cmsData.publishDate;
+            cmsData.notebooks = Array.isArray(data.notebooks) ? data.notebooks : [];
             setIsEdit(true);
           }
 
           if (mdFile) {
-            setContent(mdFile.content);
+            cmsData.content = mdFile.content;
+          }
+
+          setOriginalData(cmsData);
+
+          const draftKey = `article-draft-${routeSlug}`;
+          const savedDraft = localStorage.getItem(draftKey);
+          if (savedDraft) {
+            try {
+              const draft = JSON.parse(savedDraft);
+              applyCMSData({ ...cmsData, ...draft });
+              setDraftSavedAt(draft.savedAt);
+              setHasUnsavedDraft(true);
+              toast.success('Restored unsaved article draft from browser cache.');
+            } catch (e) {
+              console.error('Failed to parse article draft:', e);
+              applyCMSData(cmsData);
+            }
+          } else {
+            applyCMSData(cmsData);
           }
         } catch (err) {
           console.error(err);
           toast.error('Failed to load article details');
         } finally {
           setLoading(false);
+          setIsInitialized(true);
         }
       };
       loadArticle();
     }
   }, [routeSlug, token]);
+
+  // Auto-save changes to localStorage
+  useEffect(() => {
+    if (loading || !isInitialized) return;
+
+    const draftKey = routeSlug ? `article-draft-${routeSlug}` : 'article-draft-new';
+
+    const isDirty = originalData && (
+      title !== originalData.title ||
+      slug !== originalData.slug ||
+      excerpt !== originalData.excerpt ||
+      coverImage !== originalData.coverImage ||
+      status !== originalData.status ||
+      tags !== originalData.tags ||
+      publishDate !== originalData.publishDate ||
+      content !== originalData.content ||
+      JSON.stringify(notebooks) !== JSON.stringify(originalData.notebooks)
+    );
+
+    if (isDirty) {
+      const draftData = {
+        title,
+        slug,
+        excerpt,
+        coverImage,
+        status,
+        tags,
+        publishDate,
+        notebooks,
+        content,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
+      setHasUnsavedDraft(true);
+      setDraftSavedAt(draftData.savedAt);
+    } else {
+      localStorage.removeItem(draftKey);
+      setHasUnsavedDraft(false);
+      setDraftSavedAt(null);
+    }
+  }, [title, slug, excerpt, coverImage, status, tags, publishDate, notebooks, content, loading, isInitialized, routeSlug, originalData]);
+
+  const handleRevertToSaved = () => {
+    if (originalData) {
+      applyCMSData(originalData);
+      const draftKey = routeSlug ? `article-draft-${routeSlug}` : 'article-draft-new';
+      localStorage.removeItem(draftKey);
+      setHasUnsavedDraft(false);
+      setDraftSavedAt(null);
+      toast.success('Reverted to saved article version');
+    }
+  };
+
+  const handleDiscardDraft = () => {
+    const draftKey = routeSlug ? `article-draft-${routeSlug}` : 'article-draft-new';
+    localStorage.removeItem(draftKey);
+    setHasUnsavedDraft(false);
+    setDraftSavedAt(null);
+
+    if (originalData) {
+      applyCMSData(originalData);
+    } else {
+      setTitle('');
+      setSlug('');
+      setExcerpt('');
+      setCoverImage('');
+      setStatus('published');
+      setTags('');
+      setPublishDate(new Date().toISOString().split('T')[0]);
+      setNotebooks([]);
+      setContent('');
+    }
+    toast.success('Unsaved article draft discarded');
+  };
+
+  const formatDraftTime = (isoString) => {
+    if (!isoString) return '';
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' on ' + date.toLocaleDateString();
+    } catch (e) {
+      return '';
+    }
+  };
 
   // Upload primary article cover image
   // Upload primary article cover image
@@ -168,6 +334,12 @@ export default function ArticleEditor() {
         await cms.syncDirectoryIndex('data/articles');
       }
 
+      const draftKey = routeSlug ? `article-draft-${routeSlug}` : 'article-draft-new';
+      localStorage.removeItem(draftKey);
+      if (!routeSlug) {
+        localStorage.removeItem('article-draft-new');
+      }
+
       toast.success('Article saved successfully!');
       setTimeout(() => navigate('/admin'), 1500);
     } catch (err) {
@@ -209,6 +381,31 @@ export default function ArticleEditor() {
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-6">
+            {hasUnsavedDraft && (
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-300 px-5 py-3 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400 font-bold">⚠️ Draft Restored:</span>
+                  <span>You have unsaved article changes from browser cache (saved at {formatDraftTime(draftSavedAt)}).</span>
+                </div>
+                <div className="flex items-center gap-3 self-end sm:self-auto text-xs sm:text-sm">
+                  <button
+                    type="button"
+                    onClick={handleRevertToSaved}
+                    className="px-3 py-1.5 rounded-lg border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 font-semibold transition-all duration-200"
+                  >
+                    Revert to Saved
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold border border-transparent transition-all duration-200"
+                  >
+                    Discard Draft
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Form Card */}
             <div className="glass-card p-6 md:p-8 space-y-6 border border-white/5 shadow-xl">
               {/* Title & Slug */}
