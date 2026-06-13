@@ -125,6 +125,7 @@ function ProjectDetail() {
         <ReaderShell
           outlineItems={outlineItems}
           outlineTitle="Project outline"
+          accent="primary"
           header={
             <header className="border-b border-white/10 px-4 py-5 md:px-8 lg:px-10">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

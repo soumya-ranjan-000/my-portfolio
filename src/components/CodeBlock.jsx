@@ -127,14 +127,15 @@ const formatLanguage = (lang) => {
   return lang.charAt(0).toUpperCase() + lang.slice(1);
 };
 
-export default function CodeBlock({ className, children, inline }) {
+export default function CodeBlock({ className, children, inline, accent }) {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState('diagram'); // For mermaid: 'diagram' or 'code'
 
   // If it's inline code (e.g. `git clone`), render compact style
   if (inline) {
+    const textAccentClass = accent === 'secondary' ? 'text-secondary-400' : 'text-primary-400';
     return (
-      <code className="bg-dark-900/60 border border-white/5 px-1.5 py-0.5 rounded text-secondary-400 font-mono text-sm font-semibold">
+      <code className={`bg-dark-900/60 border border-white/5 px-1.5 py-0.5 rounded font-mono text-sm font-semibold ${textAccentClass}`}>
         {children}
       </code>
     );

@@ -23,23 +23,23 @@ export const createMarkdownComponents = ({
     h1: renderHeading(1, 'scroll-mt-28 mt-9 mb-4 border-b border-white/10 pb-2 font-heading text-3xl font-bold leading-tight text-orange-500 md:text-4xl'),
     h2: renderHeading(2, 'scroll-mt-28 mt-8 mb-3 font-heading text-2xl font-semibold leading-tight md:text-3xl text-primary-400'),
     h3: renderHeading(3, 'scroll-mt-28 mt-7 mb-3 font-heading text-xl font-semibold leading-snug text-secondary-400 md:text-2xl'),
-    h4: renderHeading(4, 'scroll-mt-28 mt-6 mb-2 font-heading text-lg font-semibold leading-snug text-slate-200 md:text-xl'),
-    h5: renderHeading(5, 'scroll-mt-28 mt-5 mb-2 font-heading text-base font-semibold leading-snug text-slate-200 md:text-lg'),
+    h4: renderHeading(4, 'scroll-mt-28 mt-6 mb-2 font-heading text-lg font-semibold leading-snug text-slate-300 md:text-xl'),
+    h5: renderHeading(5, 'scroll-mt-28 mt-5 mb-2 font-heading text-base font-semibold leading-snug text-slate-300 md:text-lg'),
     h6: renderHeading(6, 'scroll-mt-28 mt-5 mb-2 font-heading text-sm font-semibold uppercase tracking-wide text-slate-400 md:text-base'),
     p: ({ node, ...props }) => (
-      <p className="mb-5 font-sans text-base leading-8 text-slate-200 md:text-[17px]" {...props} />
+      <p className="mb-5 font-sans text-base leading-8 text-slate-300 md:text-[17px]" {...props} />
     ),
     ul: ({ node, ...props }) => (
-      <ul className={`mb-5 list-disc space-y-2 pl-6 font-sans text-base leading-8 text-slate-200 md:text-[17px] ${markerText}`} {...props} />
+      <ul className={`mb-5 list-disc space-y-2 pl-6 font-sans text-base leading-8 text-slate-300 md:text-[17px] ${markerText}`} {...props} />
     ),
     ol: ({ node, ...props }) => (
-      <ol className={`mb-5 list-decimal space-y-2 pl-6 font-sans text-base leading-8 text-slate-200 md:text-[17px] ${markerText}`} {...props} />
+      <ol className={`mb-5 list-decimal space-y-2 pl-6 font-sans text-base leading-8 text-slate-300 md:text-[17px] ${markerText}`} {...props} />
     ),
     li: ({ node, ...props }) => (
-      <li className="pl-1 text-slate-200 transition-colors hover:text-white" {...props} />
+      <li className="pl-1 text-slate-300 transition-colors hover:text-white" {...props} />
     ),
     strong: ({ node, ...props }) => (
-      <strong className="font-bold text-slate-50" {...props} />
+      <strong className="font-bold text-slate-100" {...props} />
     ),
     blockquote: ({ node, ...props }) => (
       <blockquote className={`my-6 rounded-r-xl border-l-4 px-5 py-4 font-sans text-base font-medium italic leading-8 text-slate-300 md:text-[17px] ${quoteBorder}`} {...props} />
@@ -56,12 +56,12 @@ export const createMarkdownComponents = ({
     tbody: ({ node, ...props }) => <tbody className="divide-y divide-white/5" {...props} />,
     tr: ({ node, ...props }) => <tr className="transition-colors hover:bg-white/[0.02]" {...props} />,
     th: ({ node, ...props }) => <th className="border-b border-white/5 px-4 py-2.5 text-left text-sm font-bold uppercase tracking-wider text-slate-100" {...props} />,
-    td: ({ node, ...props }) => <td className="px-4 py-3 text-sm font-medium leading-6 text-slate-200 md:text-base" {...props} />,
+    td: ({ node, ...props }) => <td className="px-4 py-3 text-sm font-medium leading-6 text-slate-300 md:text-base" {...props} />,
     pre: ({ node, children, ...props }) => {
       const codeChild = React.Children.toArray(children)[0];
       if (codeChild && codeChild.props) {
         return (
-          <CodeBlock className={codeChild.props.className} inline={false}>
+          <CodeBlock className={codeChild.props.className} inline={false} accent={accent}>
             {codeChild.props.children}
           </CodeBlock>
         );
@@ -69,7 +69,7 @@ export const createMarkdownComponents = ({
       return <pre {...props}>{children}</pre>;
     },
     code: ({ node, className, children, ...props }) => (
-      <CodeBlock inline className={className} {...props}>
+      <CodeBlock inline className={className} accent={accent} {...props}>
         {children}
       </CodeBlock>
     ),
@@ -148,7 +148,7 @@ export const createMarkdownComponents = ({
 
 export default function MarkdownContent({ content, components }) {
   return (
-    <div className="prose prose-invert max-w-none font-sans text-slate-200 prose-p:text-slate-200 prose-li:text-slate-200 prose-headings:font-heading prose-headings:tracking-normal">
+    <div className="prose prose-invert max-w-none font-sans text-slate-300 prose-p:text-slate-300 prose-li:text-slate-300 prose-headings:font-heading prose-headings:tracking-normal">
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}

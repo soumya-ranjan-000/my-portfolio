@@ -147,6 +147,7 @@ export default function Articles() {
             <ReaderShell
               outlineItems={outlineItems}
               outlineTitle="Article outline"
+              accent="secondary"
               header={
                 <header className="border-b border-white/10 px-4 py-5 md:px-8 lg:px-10">
                   <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

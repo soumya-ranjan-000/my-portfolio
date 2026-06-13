@@ -1,17 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaBars, FaChevronDown, FaChevronLeft, FaListUl } from 'react-icons/fa';
+import { FaChevronDown, FaListUl } from 'react-icons/fa';
 
 import { safeCssEscape } from './markdownUtils';
 
-export default function OutlineNav({ items, title = 'On this page', variant = 'desktop' }) {
+export default function OutlineNav({ items, title = 'On this page', variant = 'desktop', accent }) {
   const [activeId, setActiveId] = useState('');
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Filter items up to level 3 (H1, H2, H3)
   const visibleItems = useMemo(
-    () => items.filter((item) => item.level <= 2),
+    () => items.filter((item) => item.level <= 3),
     [items]
   );
+
+  // Find the minimum heading level to compute relative indentations
+  const minLevel = useMemo(() => {
+    if (visibleItems.length === 0) return 1;
+    return Math.min(...visibleItems.map(item => item.level));
+  }, [visibleItems]);
 
   useEffect(() => {
     if (visibleItems.length === 0) return undefined;
@@ -50,62 +56,38 @@ export default function OutlineNav({ items, title = 'On this page', variant = 'd
     }
   };
 
-  const getOutlineStyle = (level, isActive) => {
-    if (level === 1) {
-      return {
-        label: 'H1',
-        button: isActive
-          ? 'border-primary-400 bg-primary-500/20 text-slate-50 ring-2 ring-primary-500/15'
-          : 'border-primary-400/40 bg-primary-500/10 text-slate-300 hover:border-primary-400/70 hover:bg-primary-500/15',
-        badge: 'bg-primary-500/20 text-primary-300 border-primary-500/30',
-        indent: '',
-      };
-    }
-
-    if (level === 2) {
-      return {
-        label: 'H2',
-        button: isActive
-          ? 'border-secondary-400 bg-secondary-500/20 text-slate-50 ring-2 ring-secondary-500/15'
-          : 'border-secondary-400/30 bg-secondary-500/10 text-slate-300 hover:border-secondary-400/60 hover:bg-secondary-500/15',
-        badge: 'bg-secondary-500/20 text-secondary-300 border-secondary-500/30',
-        indent: 'ml-3',
-      };
-    }
-
-    return {
-      label: `H${level}`,
-      button: isActive
-        ? 'border-primary-400 bg-white/[0.08] text-slate-50 ring-2 ring-primary-500/10'
-        : 'border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:bg-white/[0.06] hover:text-slate-200',
-      badge: 'bg-white/5 text-slate-400 border-white/10',
-      indent: level === 3 ? 'ml-6' : 'ml-8',
-    };
-  };
+  const activeIndicatorColor = accent === 'secondary' ? 'bg-secondary-500' : 'bg-primary-500';
 
   const outlineList = (
-    <div className="space-y-2">
+    <div className="relative border-l border-white/10 space-y-3 py-1 ml-1.5 text-left">
       {visibleItems.length === 0 ? (
-        <p className="px-3 py-2 text-xs text-slate-500">Headings will appear here.</p>
+        <p className="pl-4 py-2 text-xs text-slate-500">No headings on this page.</p>
       ) : (
         visibleItems.map((item) => {
           const isActive = activeId === item.id;
-          const style = getOutlineStyle(item.level, isActive);
+          const relativeLevel = item.level - minLevel;
+          
+          let indentClass = 'pl-4';
+          if (relativeLevel === 1) indentClass = 'pl-8';
+          if (relativeLevel >= 2) indentClass = 'pl-12';
+
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => navigateToHeading(item.id)}
-              className={`group w-full rounded-xl border px-3 py-2 text-left font-sans shadow-sm transition-all duration-200 ${style.indent} ${style.button}`}
+              className={`group relative block w-full text-left font-sans text-xs transition-colors duration-200 ${indentClass} ${
+                isActive
+                  ? 'text-slate-100 font-medium'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
               title={item.text}
             >
-              <span className="flex items-start gap-2">
-                <span className={`mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none ${style.badge}`}>
-                  {style.label}
-                </span>
-                <span className="line-clamp-2 text-xs font-semibold leading-snug">
-                  {item.text}
-                </span>
+              {isActive && (
+                <span className={`absolute left-[-1.5px] top-0 bottom-0 w-[3px] rounded-full ${activeIndicatorColor}`} />
+              )}
+              <span className="line-clamp-2 leading-relaxed">
+                {item.text}
               </span>
             </button>
           );
@@ -133,7 +115,7 @@ export default function OutlineNav({ items, title = 'On this page', variant = 'd
               />
             </button>
             {mobileOpen && (
-              <div className="mt-2 max-h-[45vh] overflow-y-auto rounded-xl border border-white/10 bg-dark-900/95 p-2 shadow-2xl backdrop-blur">
+              <div className="mt-2 max-h-[45vh] overflow-y-auto rounded-xl border border-white/10 bg-dark-900/95 p-4 shadow-2xl backdrop-blur">
                 {outlineList}
               </div>
             )}
@@ -142,37 +124,16 @@ export default function OutlineNav({ items, title = 'On this page', variant = 'd
       )}
 
       {variant === 'desktop' && (
-      <aside
-        className={`hidden lg:block self-start transition-all duration-300 ${
-          collapsed ? 'w-12' : 'w-56 xl:w-64'
-        }`}
-      >
-        <div className={`fixed top-24 max-h-[calc(100vh-8rem)] overflow-hidden rounded-xl border border-white/10 bg-dark-900/70 shadow-xl backdrop-blur transition-all duration-300 ${
-          collapsed ? 'w-12' : 'w-56 xl:w-64'
-        }`}>
-          <div className="flex items-center justify-between border-b border-white/5 px-3 py-2.5">
-            {!collapsed && (
-              <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+        <aside className="hidden lg:block w-56 xl:w-64 self-start">
+          <div className="fixed top-24 max-h-[calc(100vh-8rem)] w-56 xl:w-64 overflow-y-auto pr-4 select-none">
+            <div className="flex flex-col">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 mb-3 pl-1.5">
                 {title}
               </h3>
-            )}
-            <button
-              type="button"
-              onClick={() => setCollapsed((value) => !value)}
-              className="ml-auto rounded-md p-2 text-slate-500 transition hover:bg-white/5 hover:text-slate-200"
-              title={collapsed ? 'Expand outline' : 'Collapse outline'}
-            >
-              {collapsed ? <FaBars size={13} /> : <FaChevronLeft size={12} />}
-            </button>
-          </div>
-
-          {!collapsed && (
-            <div className="max-h-[calc(100vh-11.5rem)] overflow-y-auto p-2">
               {outlineList}
             </div>
-          )}
-        </div>
-      </aside>
+          </div>
+        </aside>
       )}
     </>
   );
