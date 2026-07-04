@@ -10,12 +10,12 @@
       "folderPath": "data",
       "token": ""
     },
-    "isWriteActive": false,
+    "isWriteActive": true,
     "isReadActive": true,
-    "createdAt": "2026-05-20T15:11:01.652Z"
+    "createdAt": "2026-07-04T15:38:21.307Z"
   },
   {
-    "id": "github-1779289861652",
+    "id": "github-1783179689360",
     "type": "github",
     "name": "soumya-ranjan-000/my-portfolio-projects",
     "config": {
@@ -25,8 +25,8 @@
       "folderPath": "data",
       "token": ""
     },
-    "isWriteActive": true,
+    "isWriteActive": false,
     "isReadActive": true,
-    "createdAt": "2026-05-20T15:11:01.652Z"
+    "createdAt": "2026-07-04T15:41:29.360Z"
   }
 ]
